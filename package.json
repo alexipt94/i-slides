@@ -1,0 +1,14 @@
+{
+  "name": "i-slides",
+  "version": "1.0.0",
+  "description": "Modern presentation platform",
+  "scripts": {
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "build:client": "cd client && npm run build",
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install"
+  },
+  "keywords": ["react", "presentation", "vite", "nodejs"],
+  "author": "Your Name",
+  "license": "MIT"
+}
