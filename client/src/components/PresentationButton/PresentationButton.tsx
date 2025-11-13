@@ -17,19 +17,28 @@ export const PresentationButton = ({
   title, 
   onClick, 
   color = 'green', 
-  size = 'medium' 
+  size = 'medium',
+  disabled = false
 }: ButtonProps) => {
-  // Инлайновые стили только для динамических значений
   const dynamicStyles = {
     padding: sizes[size],
     backgroundColor: colors[color],
+    opacity: disabled ? 0.6 : 1,
+    cursor: disabled ? 'not-allowed' : 'pointer'
+  };
+
+  const handleClick = () => {
+    if (!disabled) {
+      onClick();
+    }
   };
 
   return (
     <button 
-      onClick={onClick}
+      onClick={handleClick}
       style={dynamicStyles}
       className={styles.button}
+      disabled={disabled}
     >
       {title}
     </button>

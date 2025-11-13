@@ -1,0 +1,114 @@
+.manager {
+  border: 2px solid #e1e5e9;
+  border-radius: 12px;
+  padding: 24px;
+  margin: 20px 0;
+  background-color: #ffffff;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #e1e5e9;
+}
+
+.header h2 {
+  color: #2c3e50;
+  margin: 0;
+}
+
+.status {
+  padding: 8px 16px;
+  background-color: #f8f9fa;
+  border-radius: 6px;
+  font-weight: 500;
+  color: #495057;
+}
+
+.slideContainer {
+  margin: 24px 0;
+  min-height: 200px;
+}
+
+.navigation {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 24px 0;
+  padding: 16px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.counter {
+  font-weight: 600;
+  color: #495057;
+  font-size: 1.1em;
+}
+
+.controls {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+
+.thumbnails {
+  margin-top: 32px;
+  padding-top: 20px;
+  border-top: 1px solid #e1e5e9;
+}
+
+.thumbnails h3 {
+  color: #2c3e50;
+  margin-bottom: 16px;
+}
+
+.thumbnailList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.thumbnail {
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: #ffffff;
+}
+
+.thumbnail:hover {
+  border-color: #007bff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 123, 255, 0.1);
+}
+
+.thumbnail.active {
+  border-color: #007bff;
+  background-color: #e7f3ff;
+}
+
+.thumbnailContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.thumbnailContent strong {
+  font-size: 0.9em;
+  color: #2c3e50;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.thumbnailContent span {
+  font-size: 0.8em;
+  color: #6c757d;
+}
