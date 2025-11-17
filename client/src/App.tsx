@@ -4,6 +4,7 @@ import { PresentationButton } from './components/PresentationButton/Presentation
 import { PresentationManager } from './components/PresentationManager/PresentationManager';
 import { Slide } from './components/Slide/Slide';
 import { Presentation } from './types';
+
 const App = () => {
   const [presentations, setPresentations] = useState<Presentation[]>([
     { id: 1, title: 'Первая презентация', slidesCount: 3 },
@@ -11,9 +12,11 @@ const App = () => {
   ]);
 
   const handleAddPresentation = (): void => {
+    const maxId = presentations.reduce((max, p) => Math.max(max, p.id), 0);
+    const newId = maxId + 1;
     const newPresentation: Presentation = {
-      id: presentations.length + 1,
-      title: `Презентация ${presentations.length + 1}`,
+      id: newId,
+      title: `Презентация ${newId}`,
       slidesCount: 0
     };
     setPresentations([...presentations, newPresentation]);
@@ -23,7 +26,6 @@ const App = () => {
     <div className={styles.container}>
       <h1 className={styles.header}>Добро пожаловать в i-slides! 🚀</h1>
       
-      {/* Добавляем менеджер презентаций */}
       <PresentationManager />
 
       <div className={styles.buttonsContainer}>
