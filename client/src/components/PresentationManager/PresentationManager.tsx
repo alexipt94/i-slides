@@ -1,125 +1,87 @@
-import { useState } from 'react';
-import type { PresentationState, SlideData } from '../../types';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { usePresentation } from '../../hooks/usePresentation';
+import type { SlideData } from '../../types';
 import { PresentationButton } from '../PresentationButton/PresentationButton';
 import { Slide } from '../Slide/Slide';
 import { SlideEditor } from '../SlideEditor/SlideEditor';
 import styles from './PresentationManager.module.css';
 
+const initialSlides: SlideData[] = [
+  {
+    id: 1,
+    title: "Добро пожаловать в i-slides!",
+    content: "Это демонстрационная презентация. Используйте кнопки для навигации."
+  },
+  {
+    id: 2,
+    title: "Возможности платформы",
+    content: "Создание интерактивных презентаций, голосования, Q&A сессии"
+  },
+  {
+    id: 3,
+    title: "Технологии",
+    content: "React, TypeScript, Node.js, WebSocket, и многое другое"
+  }
+];
+
 export const PresentationManager = () => {
-  const initialSlides: SlideData[] = [
-    {
-      id: 1,
-      title: "Добро пожаловать в i-slides!",
-      content: "Это демонстрационная презентация. Используйте кнопки для навигации."
-    },
-    {
-      id: 2,
-      title: "Возможности платформы",
-      content: "Создание интерактивных презентаций, голосования, Q&A сессии"
-    },
-    {
-      id: 3,
-      title: "Технологии",
-      content: "React, TypeScript, Node.js, WebSocket, и многое другое"
-    }
-  ];
+  // Используем кастомный хук для localStorage
+  const [savedSlides, setSavedSlides] = useLocalStorage<SlideData[]>(
+    'i-slides-presentation',
+    initialSlides
+  );
 
-  const [presentation, setPresentation] = useState<PresentationState>({
-    currentSlideIndex: 0,
-    slides: initialSlides,
-    isPlaying: false,
-    isEditing: false
-  });
+  // Используем кастомный хук для управления презентацией
+  const {
+    // Состояние
+    currentSlideIndex,
+    slides,
+    isPlaying,
+    isEditing,
+    currentSlide,
+    
+    // Действия
+    setCurrentSlide,
+    updateSlide,
+    deleteSlide,
+    togglePlaying,
+    toggleEditing,
+    
+    // Вспомогательные функции
+    goToNextSlide,
+    goToPrevSlide,
+    createNewSlide
+  } = usePresentation(savedSlides);
 
-  // Навигация
-  const goToNextSlide = (): void => {
-    setPresentation(prev => ({
-      ...prev,
-      currentSlideIndex: Math.min(prev.currentSlideIndex + 1, prev.slides.length - 1),
-      isEditing: false
-    }));
+  // Сохраняем слайды в localStorage при изменении
+  const handleSaveSlides = (newSlides: SlideData[]) => {
+    setSavedSlides(newSlides);
   };
 
-  const goToPrevSlide = (): void => {
-    setPresentation(prev => ({
-      ...prev,
-      currentSlideIndex: Math.max(prev.currentSlideIndex - 1, 0),
-      isEditing: false
-    }));
+  // Обработчики с интеграцией localStorage
+  const handleAddSlide = () => {
+    createNewSlide();
   };
 
-  // Управление редактированием
-  const startEditing = (): void => {
-    setPresentation(prev => ({ ...prev, isEditing: true }));
+  const handleUpdateSlide = (updatedSlide: SlideData) => {
+    updateSlide(currentSlideIndex, updatedSlide);
+    handleSaveSlides(slides.map((slide, index) => 
+      index === currentSlideIndex ? updatedSlide : slide
+    ));
   };
 
-  const cancelEditing = (): void => {
-    setPresentation(prev => ({ ...prev, isEditing: false }));
+  const handleDeleteSlide = () => {
+    deleteSlide(currentSlideIndex);
+    handleSaveSlides(slides.filter((_, index) => index !== currentSlideIndex));
   };
 
-  const saveSlide = (updatedSlide: SlideData): void => {
-    setPresentation(prev => {
-      const newSlides = [...prev.slides];
-      newSlides[prev.currentSlideIndex] = updatedSlide;
-      
-      return {
-        ...prev,
-        slides: newSlides,
-        isEditing: false
-      };
-    });
+  const handleStartEditing = () => {
+    toggleEditing();
   };
 
-  // Добавление нового слайда
-  const addNewSlide = (): void => {
-    const maxId = presentation.slides.reduce((max, slide) => Math.max(max, slide.id), 0);
-    const newSlide: SlideData = {
-      id: maxId + 1,
-      title: `Новый слайд ${maxId + 1}`,
-      content: "Редактируйте содержимое этого слайда"
-    };
-
-    setPresentation(prev => ({
-      ...prev,
-      slides: [...prev.slides, newSlide],
-      currentSlideIndex: prev.slides.length,
-      isEditing: true
-    }));
+  const handleCancelEditing = () => {
+    toggleEditing();
   };
-
-  // Удаление слайда
-  const deleteCurrentSlide = (): void => {
-    if (presentation.slides.length <= 1) {
-      alert('Нельзя удалить последний слайд!');
-      return;
-    }
-
-    setPresentation(prev => {
-      const newSlides = prev.slides.filter((_, index) => index !== prev.currentSlideIndex);
-      
-      let newCurrentIndex = prev.currentSlideIndex;
-      if (prev.currentSlideIndex >= newSlides.length) {
-        newCurrentIndex = newSlides.length - 1;
-      }
-
-      return {
-        ...prev,
-        slides: newSlides,
-        currentSlideIndex: newCurrentIndex,
-        isEditing: false
-      };
-    });
-  };
-
-  const togglePresentation = (): void => {
-    setPresentation(prev => ({
-      ...prev,
-      isPlaying: !prev.isPlaying
-    }));
-  };
-
-  const { currentSlideIndex, slides, isPlaying, isEditing } = presentation;
-  const currentSlide = slides[currentSlideIndex];
 
   return (
     <div className={styles.manager}>
@@ -127,25 +89,28 @@ export const PresentationManager = () => {
         <h2>Управление презентацией</h2>
         <div className={styles.status}>
           Статус: {isPlaying ? 'Запущена' : 'Остановлена'} | 
-          Режим: {isEditing ? 'Редактирование' : 'Просмотр'}
+          Режим: {isEditing ? 'Редактирование' : 'Просмотр'} |
+          Сохранено в localStorage: ✅
         </div>
       </div>
 
       {/* Область слайда */}
       <div className={styles.slideArea}>
-        {isEditing ? (
+        {isEditing && currentSlide ? (
           <SlideEditor 
             slide={currentSlide}
-            onSave={saveSlide}
-            onCancel={cancelEditing}
+            onSave={handleUpdateSlide}
+            onCancel={handleCancelEditing}
             isEditing={isEditing}
           />
         ) : (
           <div className={styles.slideContainer}>
-            <Slide 
-              title={currentSlide.title} 
-              content={currentSlide.content} 
-            />
+            {currentSlide && (
+              <Slide 
+                title={currentSlide.title} 
+                content={currentSlide.content} 
+              />
+            )}
           </div>
         )}
       </div>
@@ -178,7 +143,7 @@ export const PresentationManager = () => {
       <div className={styles.controls}>
         <PresentationButton
           title={isPlaying ? "Остановить" : "Запустить"}
-          onClick={togglePresentation}
+          onClick={togglePlaying}
           color={isPlaying ? "red" : "green"}
           size="large"
           disabled={isEditing}
@@ -186,23 +151,23 @@ export const PresentationManager = () => {
 
         <PresentationButton
           title="Добавить слайд"
-          onClick={addNewSlide}
+          onClick={handleAddSlide}
           color="green"
           size="medium"
         />
 
         <PresentationButton
           title="Удалить слайд"
-          onClick={deleteCurrentSlide}
+          onClick={handleDeleteSlide}
           color="red"
           size="medium"
           disabled={slides.length <= 1 || isEditing}
         />
 
-        {!isEditing && (
+        {!isEditing && currentSlide && (
           <PresentationButton
             title="Редактировать слайд"
-            onClick={startEditing}
+            onClick={handleStartEditing}
             color="blue"
             size="medium"
           />
@@ -221,10 +186,7 @@ export const PresentationManager = () => {
               } ${isEditing ? styles.disabled : ''}`}
               onClick={() => {
                 if (!isEditing) {
-                  setPresentation(prev => ({
-                    ...prev,
-                    currentSlideIndex: index
-                  }));
+                  setCurrentSlide(index);
                 }
               }}
             >

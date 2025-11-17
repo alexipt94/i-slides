@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useForm } from '../../hooks/useForm';
 import { SlideData, SlideFormData } from '../../types';
 import styles from './SlideEditor.module.css';
 
@@ -9,84 +10,58 @@ interface SlideEditorProps {
   isEditing: boolean;
 }
 
+// Валидация формы
+const validateSlideForm = (values: SlideFormData): Partial<Record<keyof SlideFormData, string>> => {
+  const errors: Partial<Record<keyof SlideFormData, string>> = {};
+
+  if (!values.title.trim()) {
+    errors.title = 'Заголовок не может быть пустым';
+  }
+
+  if (!values.content.trim()) {
+    errors.content = 'Содержание не может быть пустым';
+  }
+
+  return errors;
+};
+
 export const SlideEditor = ({ 
   slide, 
   onSave, 
   onCancel,
   isEditing 
 }: SlideEditorProps) => {
-  const [formData, setFormData] = useState<SlideFormData>({
-    title: '',
-    content: ''
-  });
-
-  const [errors, setErrors] = useState<Partial<SlideFormData>>({});
-
-  // Инициализация формы при монтировании или изменении слайда
-  useEffect(() => {
-    if (slide) {
-      setFormData({
-        title: slide.title,
-        content: slide.content
-      });
-    }
-  }, [slide]);
-
-  // Валидация формы
-  const validateForm = (): boolean => {
-    const newErrors: Partial<SlideFormData> = {};
-
-    if (!formData.title.trim()) {
-      newErrors.title = 'Заголовок не может быть пустым';
-    }
-
-    if (!formData.content.trim()) {
-      newErrors.content = 'Содержание не может быть пустым';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  // Обработчики событий
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ): void => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-
-    // Очищаем ошибку при вводе
-    if (errors[name as keyof SlideFormData]) {
-      setErrors(prev => ({
-        ...prev,
-        [name]: undefined
-      }));
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent): void => {
-    e.preventDefault();
-
-    if (validateForm()) {
+  const {
+    values,
+    errors,
+    isSubmitting,
+    handleChange,
+    handleSubmit,
+    resetForm,
+    setFormValues
+  } = useForm<SlideFormData>({
+    initialValues: {
+      title: slide.title,
+      content: slide.content
+    },
+    onSubmit: (formValues) => {
       const updatedSlide: SlideData = {
-        ...slide, // сохраняем id из исходного слайда
-        title: formData.title.trim(),
-        content: formData.content.trim()
+        ...slide,
+        title: formValues.title.trim(),
+        content: formValues.content.trim()
       };
       onSave(updatedSlide);
-    }
-  };
+    },
+    validate: validateSlideForm
+  });
 
-  const handleReset = (): void => {
-    setFormData({
+  // Синхронизация формы при изменении слайда
+  useEffect(() => {
+    setFormValues({
       title: slide.title,
       content: slide.content
     });
-    setErrors({});
-  };
+  }, [slide, setFormValues]);
 
   if (!isEditing) {
     return null;
@@ -103,12 +78,12 @@ export const SlideEditor = ({
           </label>
           <input
             id="title"
-            name="title"
             type="text"
-            value={formData.title}
-            onChange={handleInputChange}
+            value={values.title}
+            onChange={(e) => handleChange('title', e.target.value)}
             className={`${styles.input} ${errors.title ? styles.error : ''}`}
             placeholder="Введите заголовок слайда..."
+            disabled={isSubmitting}
           />
           {errors.title && (
             <span className={styles.errorText}>{errors.title}</span>
@@ -121,12 +96,12 @@ export const SlideEditor = ({
           </label>
           <textarea
             id="content"
-            name="content"
-            value={formData.content}
-            onChange={handleInputChange}
+            value={values.content}
+            onChange={(e) => handleChange('content', e.target.value)}
             className={`${styles.textarea} ${errors.content ? styles.error : ''}`}
             placeholder="Введите содержание слайда..."
             rows={6}
+            disabled={isSubmitting}
           />
           {errors.content && (
             <span className={styles.errorText}>{errors.content}</span>
@@ -137,15 +112,16 @@ export const SlideEditor = ({
           <button 
             type="submit" 
             className={styles.saveButton}
+            disabled={isSubmitting}
           >
-            Сохранить изменения
+            {isSubmitting ? 'Сохранение...' : 'Сохранить изменения'}
           </button>
           
           <button 
             type="button" 
-            onClick={handleReset}
+            onClick={resetForm}
             className={styles.resetButton}
-            disabled={formData.title === slide.title && formData.content === slide.content}
+            disabled={isSubmitting || (values.title === slide.title && values.content === slide.content)}
           >
             Сбросить
           </button>
@@ -154,6 +130,7 @@ export const SlideEditor = ({
             type="button" 
             onClick={onCancel}
             className={styles.cancelButton}
+            disabled={isSubmitting}
           >
             Отмена
           </button>
