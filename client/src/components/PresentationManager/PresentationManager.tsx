@@ -1,78 +1,50 @@
-import { useLocalStorage } from '../../hooks/useLocalStorage';
+import { useState } from 'react';
 import { usePresentation } from '../../hooks/usePresentation';
 import type { SlideData } from '../../types';
 import { PresentationButton } from '../PresentationButton/PresentationButton';
 import { Slide } from '../Slide/Slide';
 import { SlideEditor } from '../SlideEditor/SlideEditor';
 import styles from './PresentationManager.module.css';
+import { PresentationServerManager } from './PresentationServerManager';
 
 const initialSlides: SlideData[] = [
   {
     id: 1,
     title: "Добро пожаловать в i-slides!",
     content: "Это демонстрационная презентация. Используйте кнопки для навигации."
-  },
-  {
-    id: 2,
-    title: "Возможности платформы",
-    content: "Создание интерактивных презентаций, голосования, Q&A сессии"
-  },
-  {
-    id: 3,
-    title: "Технологии",
-    content: "React, TypeScript, Node.js, WebSocket, и многое другое"
   }
 ];
 
 export const PresentationManager = () => {
-  // Используем кастомный хук для localStorage
-  const [savedSlides, setSavedSlides] = useLocalStorage<SlideData[]>(
-    'i-slides-presentation',
-    initialSlides
-  );
-
-  // Используем кастомный хук для управления презентацией
   const {
-    // Состояние
     currentSlideIndex,
     slides,
     isPlaying,
     isEditing,
     currentSlide,
-    
-    // Действия
     setCurrentSlide,
     updateSlide,
     deleteSlide,
     togglePlaying,
     toggleEditing,
-    
-    // Вспомогательные функции
+    setSlides,
     goToNextSlide,
     goToPrevSlide,
     createNewSlide
-  } = usePresentation(savedSlides);
+  } = usePresentation(initialSlides);
 
-  // Сохраняем слайды в localStorage при изменении
-  const handleSaveSlides = (newSlides: SlideData[]) => {
-    setSavedSlides(newSlides);
-  };
+  const [presentationTitle, setPresentationTitle] = useState('Моя презентация');
 
-  // Обработчики с интеграцией localStorage
   const handleAddSlide = () => {
     createNewSlide();
   };
 
   const handleUpdateSlide = (updatedSlide: SlideData) => {
     updateSlide(currentSlideIndex, updatedSlide);
-    handleSaveSlides(slides.map((slide, index) => 
-      index === currentSlideIndex ? updatedSlide : slide
-    ));
   };
 
   const handleDeleteSlide = () => {
     deleteSlide(currentSlideIndex);
-    handleSaveSlides(slides.filter((_, index) => index !== currentSlideIndex));
   };
 
   const handleStartEditing = () => {
@@ -83,18 +55,49 @@ export const PresentationManager = () => {
     toggleEditing();
   };
 
+  const handleLoadPresentation = (newSlides: SlideData[], title: string) => {
+    setSlides(newSlides);
+    setPresentationTitle(title);
+    setCurrentSlide(0);
+    toggleEditing();
+  };
+
+  const handleCreateNewPresentation = () => {
+    const newSlide: SlideData = {
+      id: 1,
+      title: "Новая презентация",
+      content: "Начните редактирование этого слайда"
+    };
+    setSlides([newSlide]);
+    setPresentationTitle("Новая презентация");
+    setCurrentSlide(0);
+    toggleEditing();
+  };
+
+  const handleTitleChange = (newTitle: string) => {
+    setPresentationTitle(newTitle);
+  };
+
   return (
     <div className={styles.manager}>
       <div className={styles.header}>
-        <h2>Управление презентацией</h2>
+        <h2>Редактор презентаций i-slides</h2>
         <div className={styles.status}>
-          Статус: {isPlaying ? 'Запущена' : 'Остановлена'} | 
-          Режим: {isEditing ? 'Редактирование' : 'Просмотр'} |
-          Сохранено в localStorage: ✅
+          Статус: {isPlaying ? 'Запущена' : 'Редактирование'} |
+          Слайд {currentSlideIndex + 1} из {slides.length}
         </div>
       </div>
 
-      {/* Область слайда */}
+      <div className={styles.titleSection}>
+        <input
+          type="text"
+          value={presentationTitle}
+          onChange={(e) => handleTitleChange(e.target.value)}
+          className={styles.titleInput}
+          placeholder="Название презентации..."
+        />
+      </div>
+
       <div className={styles.slideArea}>
         {isEditing && currentSlide ? (
           <SlideEditor 
@@ -115,7 +118,6 @@ export const PresentationManager = () => {
         )}
       </div>
 
-      {/* Навигация */}
       <div className={styles.navigation}>
         <PresentationButton
           title="← Назад"
@@ -125,9 +127,38 @@ export const PresentationManager = () => {
           disabled={currentSlideIndex === 0 || isEditing}
         />
 
-        <div className={styles.counter}>
-          Слайд {currentSlideIndex + 1} из {slides.length}
-          {isEditing && " (режим редактирования)"}
+        <div className={styles.controls}>
+          <PresentationButton
+            title={isPlaying ? "Остановить показ" : "Начать показ"}
+            onClick={togglePlaying}
+            color={isPlaying ? "red" : "green"}
+            size="large"
+            disabled={isEditing}
+          />
+
+          <PresentationButton
+            title="Добавить слайд"
+            onClick={handleAddSlide}
+            color="green"
+            size="medium"
+          />
+
+          <PresentationButton
+            title="Удалить слайд"
+            onClick={handleDeleteSlide}
+            color="red"
+            size="medium"
+            disabled={slides.length <= 1 || isEditing}
+          />
+
+          {!isEditing && currentSlide && (
+            <PresentationButton
+              title="Редактировать слайд"
+              onClick={handleStartEditing}
+              color="blue"
+              size="medium"
+            />
+          )}
         </div>
 
         <PresentationButton
@@ -139,44 +170,15 @@ export const PresentationManager = () => {
         />
       </div>
 
-      {/* Управление */}
-      <div className={styles.controls}>
-        <PresentationButton
-          title={isPlaying ? "Остановить" : "Запустить"}
-          onClick={togglePlaying}
-          color={isPlaying ? "red" : "green"}
-          size="large"
-          disabled={isEditing}
-        />
+      <PresentationServerManager
+        currentSlides={slides}
+        currentTitle={presentationTitle}
+        onLoadPresentation={handleLoadPresentation}
+        onCreateNewPresentation={handleCreateNewPresentation}
+      />
 
-        <PresentationButton
-          title="Добавить слайд"
-          onClick={handleAddSlide}
-          color="green"
-          size="medium"
-        />
-
-        <PresentationButton
-          title="Удалить слайд"
-          onClick={handleDeleteSlide}
-          color="red"
-          size="medium"
-          disabled={slides.length <= 1 || isEditing}
-        />
-
-        {!isEditing && currentSlide && (
-          <PresentationButton
-            title="Редактировать слайд"
-            onClick={handleStartEditing}
-            color="blue"
-            size="medium"
-          />
-        )}
-      </div>
-
-      {/* Миниатюры слайдов */}
       <div className={styles.thumbnails}>
-        <h3>Все слайды:</h3>
+        <h3>Слайды текущей презентации:</h3>
         <div className={styles.thumbnailList}>
           {slides.map((slide, index) => (
             <div

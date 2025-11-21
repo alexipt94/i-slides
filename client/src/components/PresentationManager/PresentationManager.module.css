@@ -1,23 +1,165 @@
-/* Добавляем новые стили */
-.slideArea {
-  margin: 24px 0;
-  min-height: 300px;
+/* Стили для серверного менеджера */
+.serverManager {
+  border: 2px solid #e1e5e9;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 20px 0;
+  background-color: #f8f9fa;
 }
 
-.disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Обновляем существующие стили для лучшего отображения */
-.thumbnail.disabled {
-  pointer-events: none;
-  opacity: 0.5;
-}
-
-.counter {
-  font-weight: 600;
-  color: #495057;
-  font-size: 1.1em;
+.serverManager h3 {
+  color: #2c3e50;
+  margin-bottom: 16px;
   text-align: center;
+}
+
+.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: between;
+  align-items: center;
+}
+
+.clearError {
+  background: none;
+  border: none;
+  font-size: 1.2em;
+  cursor: pointer;
+  color: #721c24;
+  margin-left: auto;
+}
+
+.saveSection {
+  background-color: white;
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.formGroup {
+  margin-bottom: 12px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 1em;
+}
+
+.saveButtons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.presentationsList {
+  background-color: white;
+  padding: 16px;
+  border-radius: 8px;
+}
+
+.listHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.listHeader h4 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.noData {
+  text-align: center;
+  color: #6c757d;
+  font-style: italic;
+  padding: 20px;
+}
+
+.presentationItems {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.presentationItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #e9ecef;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.presentationItem:hover {
+  border-color: #007bff;
+  background-color: #f8f9fa;
+}
+
+.presentationItem.selected {
+  border-color: #007bff;
+  background-color: #e7f3ff;
+}
+
+.presentationInfo {
+  flex: 1;
+}
+
+.presentationInfo strong {
+  display: block;
+  color: #2c3e50;
+}
+
+.presentationInfo span {
+  color: #6c757d;
+  font-size: 0.9em;
+}
+
+.presentationInfo small {
+  color: #6c757d;
+  font-size: 0.8em;
+}
+
+.itemActions {
+  display: flex;
+  gap: 4px;
+}
+
+.titleSection {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.titleInput {
+  font-size: 1.5em;
+  font-weight: 600;
+  text-align: center;
+  border: none;
+  border-bottom: 2px solid #007bff;
+  padding: 8px 16px;
+  background: transparent;
+  color: #2c3e50;
+  width: 100%;
+  max-width: 500px;
+}
+
+.titleInput:focus {
+  outline: none;
+  border-bottom-color: #0056b3;
 }
