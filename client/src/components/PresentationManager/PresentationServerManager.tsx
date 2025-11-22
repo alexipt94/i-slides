@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNotifications } from '../../contexts/AppContext';
 import { usePresentationApi } from '../../hooks/usePresentationApi';
 import { SlideData } from '../../types';
 import { PresentationButton } from '../PresentationButton/PresentationButton';
@@ -38,7 +39,7 @@ export const PresentationServerManager = ({
   const [presentations, setPresentations] = useState<ServerPresentation[]>([]);
   const [selectedPresentation, setSelectedPresentation] = useState<string>('');
   const [saveTitle, setSaveTitle] = useState(currentTitle);
-
+  const { addNotification } = useNotifications();
   // Загружаем презентации при монтировании
   useEffect(() => {
     loadPresentations();
@@ -58,21 +59,32 @@ export const PresentationServerManager = ({
 
   const handleSavePresentation = async () => {
     if (!saveTitle.trim()) {
-      alert('Введите название презентации');
+      addNotification({
+        type: 'warning',
+        title: 'Введите название',
+        message: 'Название презентации не может быть пустым'
+      });
       return;
     }
-
+  
     const result = await savePresentation({
       title: saveTitle,
       slides: currentSlides
     });
-
+  
     if (result) {
-      alert('Презентация успешно сохранена на сервере!');
+      addNotification({
+        type: 'success',
+        title: 'Презентация сохранена!',
+        message: `"${saveTitle}" успешно сохранена на сервере`
+      });
       await loadPresentations();
-      setSaveTitle(`Презентация ${presentations.length + 1}`);
     } else {
-      alert('Ошибка при сохранении: ' + error);
+      addNotification({
+        type: 'error',
+        title: 'Ошибка сохранения',
+        message: error || 'Не удалось сохранить презентацию'
+      });
     }
   };
 

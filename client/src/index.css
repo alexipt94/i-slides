@@ -1,0 +1,96 @@
+:root {
+  /* Light theme */
+  --color-bg: #ffffff;
+  --color-surface: #f8f9fa;
+  --color-text: #212529;
+  --color-text-secondary: #6c757d;
+  --color-border: #e9ecef;
+  --color-primary: #3366ff;
+  --color-primary-hover: #2952cc;
+  --color-success: #28a745;
+  --color-warning: #ffc107;
+  --color-error: #dc3545;
+  --color-info: #17a2b8;
+}
+
+[data-theme="dark"] {
+  --color-bg: #121212;
+  --color-surface: #1e1e1e;
+  --color-text: #e9ecef;
+  --color-text-secondary: #adb5bd;
+  --color-border: #343a40;
+  --color-primary: #4d7cfe;
+  --color-primary-hover: #6b95ff;
+  --color-success: #34ce57;
+  --color-warning: #ffd351;
+  --color-error: #e4606d;
+  --color-info: #39c0d9;
+}
+
+[data-theme="auto"] {
+  /* Auto theme будет использовать системные настройки */
+  /* Для простоты сделаем как light, но можно добавить media query */
+  --color-bg: #ffffff;
+  --color-surface: #f8f9fa;
+  --color-text: #212529;
+  --color-text-secondary: #6c757d;
+  --color-border: #e9ecef;
+  --color-primary: #3366ff;
+  --color-primary-hover: #2952cc;
+  --color-success: #28a745;
+  --color-warning: #ffc107;
+  --color-error: #dc3545;
+  --color-info: #17a2b8;
+}
+
+/* Для автоматической темы - проверяем системные настройки */
+@media (prefers-color-scheme: dark) {
+  [data-theme="auto"] {
+    --color-bg: #121212;
+    --color-surface: #1e1e1e;
+    --color-text: #e9ecef;
+    --color-text-secondary: #adb5bd;
+    --color-border: #343a40;
+    --color-primary: #4d7cfe;
+    --color-primary-hover: #6b95ff;
+    --color-success: #34ce57;
+    --color-warning: #ffd351;
+    --color-error: #e4606d;
+    --color-info: #39c0d9;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+button {
+  font-family: inherit;
+}
+
+input, textarea {
+  font-family: inherit;
+}
+
+/* Плавные переходы для всех цветовых изменений */
+* {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}

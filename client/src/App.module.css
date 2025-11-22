@@ -1,47 +1,12 @@
-.container {
-  padding: 20px;
-  text-align: center;
-  max-width: 800px;
+.app {
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: all 0.3s ease;
+}
+
+.main {
+  padding: 24px;
+  max-width: 1200px;
   margin: 0 auto;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-}
-
-.header {
-  color: #2c3e50;
-  margin-bottom: 30px;
-  font-size: 2.5em;
-}
-
-.buttonsContainer {
-  margin: 20px 0;
-  display: flex;
-  gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-.presentationsList {
-  margin: 20px 0;
-  padding: 20px;
-  background-color: #f8f9fa;
-  border-radius: 8px;
-}
-
-.presentationItem {
-  border: 1px solid #dee2e6;
-  padding: 15px;
-  margin: 10px 0;
-  border-radius: 6px;
-  background-color: white;
-  transition: all 0.2s ease;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.presentationItem:hover {
-  background-color: #e9ecef;
-  border-color: #007bff;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
 }
