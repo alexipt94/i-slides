@@ -11,67 +11,56 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Временное хранилище (в продакшене заменим на базу данных)
+// 🗄️ ВРЕМЕННОЕ ХРАНИЛИЩЕ ДЛЯ ПРЕЗЕНТАЦИЙ
 let presentations: any[] = [];
 let presentationIdCounter = 1;
 
-// Типы для API
-interface HealthResponse {
-  status: string;
-  message: string;
-  timestamp: string;
-}
-
-interface Presentation {
-  id: string;
-  title: string;
-  slides: any[];
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface SavePresentationRequest {
-  title: string;
-  slides: any[];
-}
-
-// Простой тестовый endpoint
+// 🩺 Health check endpoint
 app.get('/api/health', (req, res) => {
-  const response: HealthResponse = {
+  console.log('❤️ GET /api/health');
+  res.json({
     status: 'OK',
     message: 'i-slides server is running!',
-    timestamp: new Date().toISOString()
-  };
-  res.json(response);
+    timestamp: new Date().toISOString(),
+    presentationsCount: presentations.length
+  });
 });
 
-// Получить все презентации
+// 📥 ПОЛУЧИТЬ ВСЕ ПРЕЗЕНТАЦИИ
 app.get('/api/presentations', (req, res) => {
+  console.log('📚 GET /api/presentations - Current count:', presentations.length);
   res.json({ presentations });
 });
 
-// Получить конкретную презентацию
+// 📥 ПОЛУЧИТЬ КОНКРЕТНУЮ ПРЕЗЕНТАЦИЮ
 app.get('/api/presentations/:id', (req, res) => {
+  console.log('📄 GET /api/presentations/:id - ID:', req.params.id);
   const presentation = presentations.find(p => p.id === req.params.id);
   
   if (!presentation) {
+    console.log('❌ Presentation not found');
     res.status(404).json({ error: 'Presentation not found' });
     return;
   }
 
+  console.log('✅ Presentation found:', presentation.title);
   res.json(presentation);
 });
 
-// Создать новую презентацию
+// ➕ СОЗДАТЬ НОВУЮ ПРЕЗЕНТАЦИЮ
 app.post('/api/presentations', (req, res) => {
+  console.log('🆕 === POST /api/presentations ===');
+  console.log('📦 Request body:', req.body);
+  
   const { title, slides } = req.body;
-
+  
   if (!title || !slides) {
+    console.log('❌ Missing title or slides');
     res.status(400).json({ error: 'Title and slides are required' });
     return;
   }
 
-  const newPresentation: Presentation = {
+  const newPresentation = {
     id: `pres_${presentationIdCounter++}`,
     title,
     slides,
@@ -80,25 +69,35 @@ app.post('/api/presentations', (req, res) => {
   };
 
   presentations.push(newPresentation);
+  
+  console.log('✅ Created presentation:', newPresentation);
+  console.log('📊 Total presentations now:', presentations.length);
+  
   res.status(201).json(newPresentation);
 });
 
-// Обновить презентацию
+// ✏️ ОБНОВИТЬ ПРЕЗЕНТАЦИЮ
 app.put('/api/presentations/:id', (req, res) => {
+  console.log('✏️ === PUT /api/presentations/:id ===');
+  console.log('🆔 ID:', req.params.id);
+  console.log('📦 Request body:', req.body);
+  
   const { title, slides } = req.body;
   const presentationIndex = presentations.findIndex(p => p.id === req.params.id);
 
   if (presentationIndex === -1) {
+    console.log('❌ Presentation not found for update');
     res.status(404).json({ error: 'Presentation not found' });
     return;
   }
 
   if (!title || !slides) {
+    console.log('❌ Missing title or slides for update');
     res.status(400).json({ error: 'Title and slides are required' });
     return;
   }
 
-  const updatedPresentation: Presentation = {
+  const updatedPresentation = {
     ...presentations[presentationIndex],
     title,
     slides,
@@ -106,19 +105,29 @@ app.put('/api/presentations/:id', (req, res) => {
   };
 
   presentations[presentationIndex] = updatedPresentation;
+  
+  console.log('✅ Updated presentation:', updatedPresentation);
+  
   res.json(updatedPresentation);
 });
 
-// Удалить презентацию
+// 🗑️ УДАЛИТЬ ПРЕЗЕНТАЦИЮ
 app.delete('/api/presentations/:id', (req, res) => {
+  console.log('🗑️ DELETE /api/presentations/:id - ID:', req.params.id);
   const presentationIndex = presentations.findIndex(p => p.id === req.params.id);
 
   if (presentationIndex === -1) {
+    console.log('❌ Presentation not found for deletion');
     res.status(404).json({ success: false });
     return;
   }
 
+  const deletedPresentation = presentations[presentationIndex];
   presentations.splice(presentationIndex, 1);
+  
+  console.log('✅ Deleted presentation:', deletedPresentation.title);
+  console.log('📊 Total presentations now:', presentations.length);
+  
   res.json({ success: true });
 });
 

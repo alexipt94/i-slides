@@ -27,37 +27,12 @@
   --color-info: #39c0d9;
 }
 
-[data-theme="auto"] {
-  /* Auto theme будет использовать системные настройки */
-  /* Для простоты сделаем как light, но можно добавить media query */
-  --color-bg: #ffffff;
-  --color-surface: #f8f9fa;
-  --color-text: #212529;
-  --color-text-secondary: #6c757d;
-  --color-border: #e9ecef;
-  --color-primary: #3366ff;
-  --color-primary-hover: #2952cc;
-  --color-success: #28a745;
-  --color-warning: #ffc107;
-  --color-error: #dc3545;
-  --color-info: #17a2b8;
-}
-
-/* Для автоматической темы - проверяем системные настройки */
-@media (prefers-color-scheme: dark) {
-  [data-theme="auto"] {
-    --color-bg: #121212;
-    --color-surface: #1e1e1e;
-    --color-text: #e9ecef;
-    --color-text-secondary: #adb5bd;
-    --color-border: #343a40;
-    --color-primary: #4d7cfe;
-    --color-primary-hover: #6b95ff;
-    --color-success: #34ce57;
-    --color-warning: #ffd351;
-    --color-error: #e4606d;
-    --color-info: #39c0d9;
-  }
+/* Применяем тему ко всему документу */
+html[data-theme="dark"],
+body[data-theme="dark"],
+[data-theme="dark"] {
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }
 
 * {
@@ -90,7 +65,10 @@ input, textarea {
   font-family: inherit;
 }
 
-/* Плавные переходы для всех цветовых изменений */
-* {
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+/* Стили для всего приложения */
+.app {
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  transition: all 0.3s ease;
 }

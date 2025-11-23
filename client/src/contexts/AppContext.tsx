@@ -1,86 +1,65 @@
-import { ReactNode, createContext, useContext, useEffect, useReducer } from 'react';
-import { AppSettings, AppState, Notification, User } from '../types/context';
+import { createContext, useCallback, useContext, useEffect, useReducer } from 'react';
+import { AppSettings as AppSettingsType, AppState, Notification, User } from '../types/context';
 
-// Типы действий
+// 🎯 ТИПИЗИРОВАННЫЕ ДЕЙСТВИЯ - Discriminated Unions
 type AppAction =
   | { type: 'SET_LOADING'; payload: boolean }
   | { type: 'SET_USER'; payload: User | null }
-  | { type: 'UPDATE_SETTINGS'; payload: Partial<AppSettings> }
+  | { type: 'UPDATE_SETTINGS'; payload: Partial<AppSettingsType> }
   | { type: 'ADD_NOTIFICATION'; payload: Omit<Notification, 'id'> }
-  | { type: 'REMOVE_NOTIFICATION'; payload: string }
-  | { type: 'SET_INITIAL_SETTINGS'; payload: AppSettings };
+  | { type: 'REMOVE_NOTIFICATION'; payload: string };
 
-// Функция для получения начальных настроек из localStorage
-const getInitialSettings = (): AppSettings => {
-  if (typeof window === 'undefined') {
-    return {
+// 🏁 НАЧАЛЬНОЕ СОСТОЯНИЕ
+const getInitialState = (): AppState => {
+  // Загружаем настройки из localStorage при инициализации
+  if (typeof window !== 'undefined') {
+    try {
+      const savedSettings = localStorage.getItem('i-slides-settings');
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        return {
+          user: null,
+          settings: {
+            theme: settings.theme || 'light',
+            language: settings.language || 'ru',
+            notifications: settings.notifications !== undefined ? settings.notifications : true,
+            autoSave: settings.autoSave !== undefined ? settings.autoSave : true,
+          },
+          notifications: [],
+          isLoading: false,
+        };
+      }
+    } catch (error) {
+      console.error('Failed to load settings from localStorage:', error);
+    }
+  }
+
+  return {
+    user: null,
+    settings: {
       theme: 'light',
       language: 'ru',
       notifications: true,
       autoSave: true,
-    };
-  }
-
-  try {
-    const savedSettings = localStorage.getItem('i-slides-settings');
-    if (savedSettings) {
-      const parsedSettings = JSON.parse(savedSettings);
-      return {
-        theme: 'light',
-        language: 'ru',
-        notifications: true,
-        autoSave: true,
-        ...parsedSettings, // Перезаписываем дефолтные значения сохраненными
-      };
-    }
-  } catch (error) {
-    console.error('Failed to parse saved settings:', error);
-  }
-
-  return {
-    theme: 'light',
-    language: 'ru',
-    notifications: true,
-    autoSave: true,
+    },
+    notifications: [],
+    isLoading: false,
   };
 };
 
-// Начальное состояние
-const initialState: AppState = {
-  user: null,
-  settings: getInitialSettings(), // Используем функцию для получения настроек
-  notifications: [],
-  isLoading: false,
-};
-
-// Создаем контекст
-const AppContext = createContext<{
-  state: AppState;
-  dispatch: React.Dispatch<AppAction>;
-} | null>(null);
-
-// Редуктор
+// 🔄 РЕДЬЮСЕР - централизованная логика обновлений
 function appReducer(state: AppState, action: AppAction): AppState {
   switch (action.type) {
     case 'SET_LOADING':
       return { ...state, isLoading: action.payload };
-
     case 'SET_USER':
       return { ...state, user: action.payload };
-
     case 'UPDATE_SETTINGS':
       const newSettings = { ...state.settings, ...action.payload };
       return {
         ...state,
         settings: newSettings,
       };
-
-    case 'SET_INITIAL_SETTINGS':
-      return {
-        ...state,
-        settings: action.payload,
-      };
-
     case 'ADD_NOTIFICATION':
       const newNotification: Notification = {
         ...action.payload,
@@ -91,7 +70,6 @@ function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         notifications: [...state.notifications, newNotification],
       };
-
     case 'REMOVE_NOTIFICATION':
       return {
         ...state,
@@ -99,21 +77,46 @@ function appReducer(state: AppState, action: AppAction): AppState {
           notification => notification.id !== action.payload
         ),
       };
-
     default:
       return state;
   }
 }
 
-// Провайдер
+// 🎪 СОЗДАЕМ КОНТЕКСТ
+const AppContext = createContext<{
+  state: AppState;
+  dispatch: React.Dispatch<AppAction>;
+} | null>(null);
+
+// 📦 ПРОВАЙДЕР
 interface AppProviderProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
-export function AppProvider({ children }: AppProviderProps) {
-  const [state, dispatch] = useReducer(appReducer, initialState);
+export const AppProvider = ({ children }: AppProviderProps) => {
+  const [state, dispatch] = useReducer(appReducer, getInitialState());
 
-  // Загружаем пользователя при загрузке (пока моковые данные)
+  // 🌙 ПРИМЕНЕНИЕ ТЕМЫ К ДОКУМЕНТУ
+  const applyTheme = useCallback((theme: string) => {
+    if (typeof window !== 'undefined') {
+      document.documentElement.setAttribute('data-theme', theme);
+      document.body.setAttribute('data-theme', theme);
+    }
+  }, []);
+
+  // 💾 СОХРАНЕНИЕ НАСТРОЕК В LOCALSTORAGE ПРИ ИЗМЕНЕНИИ
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('i-slides-settings', JSON.stringify(state.settings));
+    }
+  }, [state.settings]);
+
+  // 🌙 ПРИМЕНЯЕМ ТЕМУ ПРИ ИНИЦИАЛИЗАЦИИ И ИЗМЕНЕНИИ
+  useEffect(() => {
+    applyTheme(state.settings.theme);
+  }, [state.settings.theme, applyTheme]);
+
+  // 📥 ИНИЦИАЛИЗАЦИЯ ПОЛЬЗОВАТЕЛЯ
   useEffect(() => {
     const mockUser: User = {
       id: '1',
@@ -123,67 +126,52 @@ export function AppProvider({ children }: AppProviderProps) {
     dispatch({ type: 'SET_USER', payload: mockUser });
   }, []);
 
-  // Сохраняем настройки в localStorage при изменении
-  useEffect(() => {
-    localStorage.setItem('i-slides-settings', JSON.stringify(state.settings));
-    
-    // Применяем тему к документу
-    document.documentElement.setAttribute('data-theme', state.settings.theme);
-  }, [state.settings]);
-
-  // Применяем тему при первоначальной загрузке
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', state.settings.theme);
-  }, []);
-
   return (
     <AppContext.Provider value={{ state, dispatch }}>
       {children}
     </AppContext.Provider>
   );
-}
+};
 
-
-
-// Хук для использования контекста
-export function useApp() {
+// 🎯 КАСТОМНЫЙ ХУК ДЛЯ ИСПОЛЬЗОВАНИЯ КОНТЕКСТА
+export const useApp = () => {
   const context = useContext(AppContext);
   if (!context) {
     throw new Error('useApp must be used within an AppProvider');
   }
   return context;
-}
+};
 
-// Вспомогательные хуки
-export function useSettings() {
+// 🛠️ СПЕЦИАЛИЗИРОВАННЫЕ ХУКИ
+export const useSettings = () => {
   const { state, dispatch } = useApp();
   
-  const updateSettings = (settings: Partial<AppSettings>) => {
+  const updateSettings = useCallback((settings: Partial<AppSettingsType>) => {
     dispatch({ type: 'UPDATE_SETTINGS', payload: settings });
-  };
+  }, [dispatch]);
 
   return {
     settings: state.settings,
     updateSettings,
   };
-}
+};
 
-export function useNotifications() {
+export const useNotifications = () => {
   const { state, dispatch } = useApp();
-
-  const addNotification = (notification: Omit<Notification, 'id'>) => {
+  
+  const addNotification = useCallback((notification: Omit<Notification, 'id'>) => {
     dispatch({ type: 'ADD_NOTIFICATION', payload: notification });
-  };
+  }, [dispatch]);
 
-  const removeNotification = (id: string) => {
+  const removeNotification = useCallback((id: string) => {
     dispatch({ type: 'REMOVE_NOTIFICATION', payload: id });
-  };
+  }, [dispatch]);
 
-  const clearAllNotifications = () => {
+  const clearAllNotifications = useCallback(() => {
     state.notifications.forEach(notification => {
       dispatch({ type: 'REMOVE_NOTIFICATION', payload: notification.id });
     });
-  };
+  }, [state.notifications, dispatch]);
 
   return {
     notifications: state.notifications,
@@ -191,17 +179,17 @@ export function useNotifications() {
     removeNotification,
     clearAllNotifications,
   };
-}
+};
 
-export function useUser() {
+export const useUser = () => {
   const { state, dispatch } = useApp();
-
-  const setUser = (user: User | null) => {
+  
+  const setUser = useCallback((user: User | null) => {
     dispatch({ type: 'SET_USER', payload: user });
-  };
+  }, [dispatch]);
 
   return {
     user: state.user,
     setUser,
   };
-}
+};

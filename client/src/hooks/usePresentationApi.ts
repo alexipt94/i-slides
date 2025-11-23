@@ -1,3 +1,4 @@
+import { useCallback } from 'react';
 import { SlideData } from '../types';
 import { useApi } from './useApi';
 
@@ -14,50 +15,74 @@ interface SavePresentationRequest {
   slides: SlideData[];
 }
 
-interface PresentationsResponse {
-  presentations: Presentation[];
-}
-
-interface DeleteResponse {
-  success: boolean;
-}
-
 export const usePresentationApi = () => {
-  // Убираем дженерик из useApi, так как он будет определяться в каждом вызове request
   const api = useApi();
 
-  const savePresentation = async (presentationData: SavePresentationRequest): Promise<Presentation | null> => {
+  // 🎯 СОХРАНЕНИЕ ПРЕЗЕНТАЦИИ
+  const savePresentation = useCallback(async (
+    presentationData: SavePresentationRequest
+  ): Promise<Presentation | null> => {
+    console.log('💾 Saving presentation:', presentationData);
+    
     const result = await api.request('/api/presentations', {
       method: 'POST',
       body: JSON.stringify(presentationData)
     });
+    
+    console.log('✅ Save result:', result);
     return result as Presentation | null;
-  };
+  }, [api]);
 
-  const updatePresentation = async (id: string, presentationData: SavePresentationRequest): Promise<Presentation | null> => {
+  // 🎯 ОБНОВЛЕНИЕ ПРЕЗЕНТАЦИИ
+  const updatePresentation = useCallback(async (
+    id: string,
+    presentationData: SavePresentationRequest
+  ): Promise<Presentation | null> => {
+    console.log('✏️ Updating presentation:', id, presentationData);
+    
     const result = await api.request(`/api/presentations/${id}`, {
       method: 'PUT',
       body: JSON.stringify(presentationData)
     });
+    
     return result as Presentation | null;
-  };
+  }, [api]);
 
-  const getPresentation = async (id: string): Promise<Presentation | null> => {
+  // 🎯 ПОЛУЧЕНИЕ ПРЕЗЕНТАЦИИ
+  const getPresentation = useCallback(async (id: string): Promise<Presentation | null> => {
+    console.log('📥 Getting presentation:', id);
+    
     const result = await api.request(`/api/presentations/${id}`);
+    console.log('📄 Get result:', result);
+    
     return result as Presentation | null;
-  };
+  }, [api]);
 
-  const getAllPresentations = async (): Promise<Presentation[] | null> => {
-    const result = await api.request('/api/presentations') as PresentationsResponse | null;
-    return result?.presentations || null;
-  };
+  // 🎯 ПОЛУЧЕНИЕ ВСЕХ ПРЕЗЕНТАЦИЙ
+  const getAllPresentations = useCallback(async (): Promise<Presentation[] | null> => {
+    console.log('📚 Getting all presentations...');
+    
+    const result = await api.request('/api/presentations') as { presentations: Presentation[] } | null;
+    console.log('📋 Get all result:', result);
+    
+    if (!result || !result.presentations) {
+      console.log('❌ No presentations found in response');
+      return null;
+    }
+    
+    return result.presentations;
+  }, [api]);
 
-  const deletePresentation = async (id: string): Promise<boolean> => {
+  // 🎯 УДАЛЕНИЕ ПРЕЗЕНТАЦИИ
+  const deletePresentation = useCallback(async (id: string): Promise<boolean> => {
+    console.log('🗑️ Deleting presentation:', id);
+    
     const result = await api.request(`/api/presentations/${id}`, {
       method: 'DELETE'
-    }) as DeleteResponse | null;
+    }) as { success: boolean } | null;
+    
     return result?.success || false;
-  };
+  }, [api]);
 
   return {
     savePresentation,
