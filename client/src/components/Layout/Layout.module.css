@@ -2,15 +2,19 @@
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }
 
 .container {
   display: flex;
   flex: 1;
+  background-color: var(--color-bg);
 }
 
 .main {
   flex: 1;
   padding: 24px;
   background-color: var(--color-bg);
+  color: var(--color-text);
 }

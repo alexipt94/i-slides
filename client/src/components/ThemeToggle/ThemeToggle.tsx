@@ -1,41 +1,39 @@
 import { useSettings } from '../../contexts/AppContext';
 import styles from './ThemeToggle.module.css';
 
-export function ThemeToggle() {
+export const ThemeToggle = () => {
   const { settings, updateSettings } = useSettings();
 
   const toggleTheme = () => {
-    const newTheme = settings.theme === 'light' ? 'dark' : 'light';
+    const themes: ('light' | 'dark' | 'auto')[] = ['light', 'dark', 'auto'];
+    const currentIndex = themes.indexOf(settings.theme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    const newTheme = themes[nextIndex];
+    
+    console.log('🔄 Switching theme from', settings.theme, 'to', newTheme);
     updateSettings({ theme: newTheme });
   };
 
   const getThemeIcon = () => {
-    switch (settings.theme) {
-      case 'dark':
-        return '☀️';
-      case 'auto':
-        return '⚙️';
-      default:
-        return '🌙';
+    if (settings.theme === 'auto') {
+      return '⚙️';
     }
+    return settings.theme === 'light' ? '☀️' : '🌙';
   };
 
   const getThemeText = () => {
-    switch (settings.theme) {
-      case 'dark':
-        return 'Светлая тема';
-      case 'auto':
-        return 'Авто тема';
-      default:
-        return 'Темная тема';
+    if (settings.theme === 'auto') {
+      return 'Авто';
     }
+    return settings.theme === 'light' ? 'Светлая' : 'Темная';
   };
 
   return (
     <button
       className={styles.toggle}
       onClick={toggleTheme}
-      aria-label={`Switch to ${settings.theme === 'light' ? 'dark' : 'light'} theme`}
+      aria-label={`Текущая тема: ${getThemeText()}. Нажмите для смены.`}
+      title={`Текущая тема: ${getThemeText()}`}
     >
       <span className={styles.icon}>
         {getThemeIcon()}
@@ -45,4 +43,4 @@ export function ThemeToggle() {
       </span>
     </button>
   );
-}
+};

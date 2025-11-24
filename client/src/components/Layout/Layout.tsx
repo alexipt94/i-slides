@@ -7,6 +7,7 @@ import styles from './Layout.module.css';
 export const Layout = () => {
   return (
     <div className={styles.layout}>
+      {/* ХЕДЕР ТОЛЬКО ЗДЕСЬ */}
       <AppHeader />
       <div className={styles.container}>
         <Navigation />

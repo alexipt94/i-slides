@@ -1,7 +1,7 @@
-import { useCallback, useReducer } from 'react';
+import { useCallback, useMemo, useReducer } from 'react';
 import { PresentationState, SlideData } from '../types';
 
-// Типы для действий (actions)
+// 🎯 ТИПИЗИРОВАННЫЕ ДЕЙСТВИЯ
 type PresentationAction =
   | { type: 'SET_CURRENT_SLIDE'; payload: number }
   | { type: 'ADD_SLIDE'; payload: SlideData }
@@ -12,7 +12,6 @@ type PresentationAction =
   | { type: 'TOGGLE_EDITING' }
   | { type: 'SET_SLIDES'; payload: SlideData[] };
 
-// Начальное состояние
 const initialState: PresentationState = {
   currentSlideIndex: 0,
   slides: [],
@@ -20,8 +19,11 @@ const initialState: PresentationState = {
   isEditing: false
 };
 
-// Редуктор для управления состоянием
-function presentationReducer(state: PresentationState, action: PresentationAction): PresentationState {
+// 🎯 РЕДЬЮСЕР ВНЕ ХУКА ДЛЯ СТАБИЛЬНОСТИ
+function presentationReducer(
+  state: PresentationState,
+  action: PresentationAction
+): PresentationState {
   switch (action.type) {
     case 'SET_CURRENT_SLIDE':
       return {
@@ -29,7 +31,6 @@ function presentationReducer(state: PresentationState, action: PresentationActio
         currentSlideIndex: action.payload,
         isEditing: false
       };
-
     case 'ADD_SLIDE':
       return {
         ...state,
@@ -37,7 +38,6 @@ function presentationReducer(state: PresentationState, action: PresentationActio
         currentSlideIndex: state.slides.length,
         isEditing: true
       };
-
     case 'UPDATE_SLIDE':
       const newSlides = [...state.slides];
       newSlides[action.payload.index] = action.payload.slide;
@@ -46,16 +46,14 @@ function presentationReducer(state: PresentationState, action: PresentationActio
         slides: newSlides,
         isEditing: false
       };
-
     case 'DELETE_SLIDE':
       if (state.slides.length <= 1) return state;
-      
       const filteredSlides = state.slides.filter((_, index) => index !== action.payload);
       let newCurrentIndex = state.currentSlideIndex;
       
       if (action.payload === state.currentSlideIndex) {
-        newCurrentIndex = state.currentSlideIndex >= filteredSlides.length 
-          ? filteredSlides.length - 1 
+        newCurrentIndex = state.currentSlideIndex >= filteredSlides.length
+          ? filteredSlides.length - 1
           : state.currentSlideIndex;
       } else if (action.payload < state.currentSlideIndex) {
         newCurrentIndex = state.currentSlideIndex - 1;
@@ -67,26 +65,17 @@ function presentationReducer(state: PresentationState, action: PresentationActio
         currentSlideIndex: newCurrentIndex,
         isEditing: false
       };
-
-    case 'REORDER_SLIDES':
-      return {
-        ...state,
-        slides: action.payload
-      };
-
     case 'TOGGLE_PLAYING':
       return {
         ...state,
         isPlaying: !state.isPlaying,
         isEditing: false
       };
-
     case 'TOGGLE_EDITING':
       return {
         ...state,
         isEditing: !state.isEditing
       };
-
     case 'SET_SLIDES':
       return {
         ...state,
@@ -94,20 +83,18 @@ function presentationReducer(state: PresentationState, action: PresentationActio
         currentSlideIndex: 0,
         isEditing: false
       };
-
     default:
       return state;
   }
 }
 
-// Кастомный хук usePresentation
 export const usePresentation = (initialSlides: SlideData[] = []) => {
   const [state, dispatch] = useReducer(presentationReducer, {
     ...initialState,
     slides: initialSlides
   });
 
-  // Действия (actions) - обернуты в useCallback для стабильности
+  // 🎯 МЕМОИЗИРОВАННЫЕ ДЕЙСТВИЯ
   const setCurrentSlide = useCallback((index: number) => {
     dispatch({ type: 'SET_CURRENT_SLIDE', payload: index });
   }, []);
@@ -124,10 +111,6 @@ export const usePresentation = (initialSlides: SlideData[] = []) => {
     dispatch({ type: 'DELETE_SLIDE', payload: index });
   }, []);
 
-  const reorderSlides = useCallback((slides: SlideData[]) => {
-    dispatch({ type: 'REORDER_SLIDES', payload: slides });
-  }, []);
-
   const togglePlaying = useCallback(() => {
     dispatch({ type: 'TOGGLE_PLAYING' });
   }, []);
@@ -140,7 +123,7 @@ export const usePresentation = (initialSlides: SlideData[] = []) => {
     dispatch({ type: 'SET_SLIDES', payload: slides });
   }, []);
 
-  // Вспомогательные функции
+  // 🎯 МЕМОИЗИРОВАННЫЕ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
   const goToNextSlide = useCallback(() => {
     const nextIndex = Math.min(state.currentSlideIndex + 1, state.slides.length - 1);
     setCurrentSlide(nextIndex);
@@ -161,26 +144,43 @@ export const usePresentation = (initialSlides: SlideData[] = []) => {
     addSlide(newSlide);
   }, [state.slides, addSlide]);
 
-  return {
-    // Состояние
+  // 🎯 МЕМОИЗИРОВАННОЕ ТЕКУЩЕЕ СОСТОЯНИЕ
+  const currentSlide = useMemo(() => 
+    state.slides[state.currentSlideIndex], 
+    [state.slides, state.currentSlideIndex]
+  );
+
+  // 🎯 ВОЗВРАЩАЕМ МЕМОИЗИРОВАННЫЙ ОБЪЕКТ
+  return useMemo(() => ({
+    // СОСТОЯНИЕ
     ...state,
+    currentSlide,
     
-    // Действия
+    // ДЕЙСТВИЯ
     setCurrentSlide,
     addSlide,
     updateSlide,
     deleteSlide,
-    reorderSlides,
     togglePlaying,
     toggleEditing,
     setSlides,
     
-    // Вспомогательные функции
+    // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
     goToNextSlide,
     goToPrevSlide,
-    createNewSlide,
-    
-    // Текущий слайд (удобный доступ)
-    currentSlide: state.slides[state.currentSlideIndex]
-  };
+    createNewSlide
+  }), [
+    state,
+    currentSlide,
+    setCurrentSlide,
+    addSlide,
+    updateSlide,
+    deleteSlide,
+    togglePlaying,
+    toggleEditing,
+    setSlides,
+    goToNextSlide,
+    goToPrevSlide,
+    createNewSlide
+  ]);
 };

@@ -9,30 +9,50 @@
   border-left: 4px solid;
   max-width: 400px;
   animation: slideIn 0.3s ease-out;
+  background-color: var(--color-surface);
+  color: var(--color-text);
 }
 
+/* Уведомления с легким оттенком цвета */
 .notification.success {
-  background-color: #f6ffed;
-  border-color: #52c41a;
-  color: #135200;
+  border-color: var(--color-success);
+  background-color: var(--color-surface);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(40, 167, 69, 0.1);
 }
 
 .notification.error {
-  background-color: #fff2f0;
-  border-color: #ff4d4f;
-  color: #a8071a;
+  border-color: var(--color-error);
+  background-color: var(--color-surface);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(220, 53, 69, 0.1);
 }
 
 .notification.warning {
-  background-color: #fffbe6;
-  border-color: #faad14;
-  color: #5c3b00;
+  border-color: var(--color-warning);
+  background-color: var(--color-surface);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(255, 193, 7, 0.1);
 }
 
 .notification.info {
-  background-color: #e6f7ff;
-  border-color: #1890ff;
-  color: #0050b3;
+  border-color: var(--color-info);
+  background-color: var(--color-surface);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), inset 0 0 0 1px rgba(23, 162, 184, 0.1);
+}
+
+/* Темная тема - более выразительные тени */
+[data-theme="dark"] .notification.success {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(52, 206, 87, 0.2);
+}
+
+[data-theme="dark"] .notification.error {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(228, 96, 109, 0.2);
+}
+
+[data-theme="dark"] .notification.warning {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(255, 211, 81, 0.2);
+}
+
+[data-theme="dark"] .notification.info {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3), inset 0 0 0 1px rgba(57, 192, 217, 0.2);
 }
 
 .content {
@@ -43,6 +63,7 @@
   margin: 0 0 4px 0;
   font-size: 14px;
   font-weight: 600;
+  color: var(--color-text);
 }
 
 .message {
@@ -50,6 +71,7 @@
   font-size: 13px;
   opacity: 0.9;
   line-height: 1.4;
+  color: var(--color-text);
 }
 
 .closeButton {
@@ -65,6 +87,7 @@
   justify-content: center;
   opacity: 0.7;
   transition: opacity 0.2s;
+  color: var(--color-text);
 }
 
 .closeButton:hover {

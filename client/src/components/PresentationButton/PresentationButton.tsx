@@ -1,9 +1,10 @@
+import { memo } from 'react';
 import { ButtonProps } from '../../types';
 import styles from './PresentationButton.module.css';
 
 const sizes = {
   small: '8px 16px',
-  medium: '12px 24px', 
+  medium: '12px 24px',
   large: '16px 32px'
 };
 
@@ -13,10 +14,10 @@ const colors = {
   blue: '#33339f'
 };
 
-export const PresentationButton = ({ 
-  title, 
-  onClick, 
-  color = 'green', 
+const PresentationButtonComponent = ({
+  title,
+  onClick,
+  color = 'green',
   size = 'medium',
   disabled = false
 }: ButtonProps) => {
@@ -34,7 +35,7 @@ export const PresentationButton = ({
   };
 
   return (
-    <button 
+    <button
       onClick={handleClick}
       style={dynamicStyles}
       className={styles.button}
@@ -44,3 +45,5 @@ export const PresentationButton = ({
     </button>
   );
 };
+
+export const PresentationButton = memo(PresentationButtonComponent);  

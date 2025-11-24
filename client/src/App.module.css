@@ -2,11 +2,12 @@
   min-height: 100vh;
   background-color: var(--color-bg);
   color: var(--color-text);
-  transition: all 0.3s ease;
 }
 
 .main {
   padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
+  background-color: var(--color-bg);
+  color: var(--color-text);
 }

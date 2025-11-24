@@ -1,84 +1,76 @@
-import { lazy, Suspense } from 'react';
-import {
-  Route,
-  BrowserRouter as Router,
-  Routes
-} from 'react-router-dom';
-import './App.module.css';
+import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import styles from './App.module.css';
 import { Layout } from './components/Layout/Layout';
-import { LoadingSpinner } from './components/LoadingSpinner/LoadingSpinner';
 import { NotificationContainer } from './components/Notification/NotificationContainer';
 import { PresentationManager } from './components/PresentationManager/PresentationManager';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
+import { ThemeInitializer } from './components/ThemeInitializer/ThemeInitializer';
 import { AppProvider } from './contexts/AppContext';
+import { Home } from './pages/Home/Home';
+import { PresentationsList } from './pages/PresentationsList/PresentationsList';
+import { Settings } from './pages/Settings/Settings';
 
-// Ленивая загрузка существующих страниц
-const Home = lazy(() => import('./pages/Home/Home').then(module => ({ default: module.Home })));
-const PresentationsList = lazy(() => import('./pages/PresentationsList/PresentationsList').then(module => ({ default: module.PresentationsList })));
-const Settings = lazy(() => import('./pages/Settings/Settings').then(module => ({ default: module.Settings })));
-
-// Временные заглушки для отсутствующих страниц
-const NotFound = lazy(() => Promise.resolve({ 
-  default: () => (
-    <div style={{ padding: '20px', textAlign: 'center' }}>
-      <h1>404 - Страница не найдена</h1>
-      <p>Запрашиваемая страница не существует</p>
-    </div>
-  )
-}));
-
-// Компоненты для редактирования и просмотра презентаций
-const PresentationEdit = () => <PresentationManager mode="edit" />;
-const PresentationView = () => <PresentationManager mode="view" />;
+const NotFound = () => (
+  <div style={{ padding: '20px', textAlign: 'center' }}>
+    <h1>404 - Страница не найдена</h1>
+    <p>Запрашиваемая страница не существует</p>
+  </div>
+);
 
 const App = () => {
   return (
     <AppProvider>
+      {/* Инициализатор темы должен быть внутри AppProvider */}
+      <ThemeInitializer />
       <Router>
-        <div className="app">
+        <div className={styles.app}>
           <NotificationContainer />
-          <Suspense fallback={<LoadingSpinner />}>
-            <Routes>
-              <Route path="/" element={<Layout />}>
-                {/* Публичные маршруты */}
-                <Route index element={<Home />} />
-                
-                {/* Защищенные маршруты */}
-                <Route path="/presentations" element={
+          <Routes>
+            <Route path="/" element={<Layout />}>
+              <Route index element={<Home />} />
+              <Route 
+                path="/presentations" 
+                element={
                   <ProtectedRoute>
                     <PresentationsList />
                   </ProtectedRoute>
-                } />
-                
-                <Route path="/create" element={
+                } 
+              />
+              <Route 
+                path="/create" 
+                element={
                   <ProtectedRoute>
-                    <PresentationEdit />
+                    <PresentationManager mode="edit" />
                   </ProtectedRoute>
-                } />
-                
-                <Route path="/presentations/:id/edit" element={
+                } 
+              />
+              <Route 
+                path="/presentations/:id/edit" 
+                element={
                   <ProtectedRoute>
-                    <PresentationEdit />
+                    <PresentationManager mode="edit" />
                   </ProtectedRoute>
-                } />
-                
-                <Route path="/presentations/:id/view" element={
+                } 
+              />
+              <Route 
+                path="/presentations/:id/view" 
+                element={
                   <ProtectedRoute>
-                    <PresentationView />
+                    <PresentationManager mode="view" />
                   </ProtectedRoute>
-                } />
-                
-                <Route path="/settings" element={
+                } 
+              />
+              <Route 
+                path="/settings" 
+                element={
                   <ProtectedRoute>
                     <Settings />
                   </ProtectedRoute>
-                } />
-                
-                {/* Маршрут для ненайденных страниц */}
-                <Route path="*" element={<NotFound />} />
-              </Route>
-            </Routes>
-          </Suspense>
+                } 
+              />
+              <Route path="*" element={<NotFound />} />
+            </Route>
+          </Routes>
         </div>
       </Router>
     </AppProvider>

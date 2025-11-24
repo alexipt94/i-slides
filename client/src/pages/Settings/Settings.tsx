@@ -1,44 +1,64 @@
-import { useEffect, useState } from 'react';
+import { memo, useCallback, useEffect, useState } from 'react';
 import { PresentationButton } from '../../components/PresentationButton/PresentationButton';
 import { useNotifications, useSettings, useUser } from '../../contexts/AppContext';
+import { useDebounce } from '../../hooks/useDebounce';
 import styles from './Settings.module.css';
 
-export const Settings = () => {
+const SettingsComponent = () => {
   const { settings, updateSettings } = useSettings();
   const { user, setUser } = useUser();
   const { addNotification } = useNotifications();
-  
+
   const [localSettings, setLocalSettings] = useState(settings);
   const [userData, setUserData] = useState({
     name: user?.name || '',
     email: user?.email || '',
   });
+
+  // 🎯 ДЕБАУНС ДЛЯ АВТОСОХРАНЕНИЯ
+  const debouncedSettings = useDebounce(localSettings, 1000);
   const [isDirty, setIsDirty] = useState(false);
 
-  // Следим за изменениями для определения "грязного" состояния
   useEffect(() => {
     const settingsChanged = JSON.stringify(localSettings) !== JSON.stringify(settings);
     const userChanged = userData.name !== user?.name || userData.email !== user?.email;
     setIsDirty(settingsChanged || userChanged);
   }, [localSettings, settings, userData, user]);
 
-  const handleSettingChange = (key: keyof typeof settings, value: any) => {
-    setLocalSettings(prev => ({
+  // 🎯 АВТОСОХРАНЕНИЕ ПРИ ИЗМЕНЕНИИ НАСТРОЕК
+  useEffect(() => {
+    if (settings.autoSave && isDirty) {
+      const settingsChanged = JSON.stringify(debouncedSettings) !== JSON.stringify(settings);
+      if (settingsChanged) {
+        updateSettings(debouncedSettings);
+        addNotification({
+          type: 'success',
+          title: 'Настройки сохранены',
+          message: 'Настройки автоматически сохранены'
+        });
+        setIsDirty(false);
+      }
+    }
+  }, [debouncedSettings, settings.autoSave, isDirty, updateSettings, addNotification, settings]);
+
+  const handleSettingChange = useCallback((key: keyof typeof settings, value: any) => {
+    setLocalSettings((prev: typeof settings) => ({
       ...prev,
       [key]: value
     }));
-  };
+    setIsDirty(true);
+  }, []);
 
-  const handleUserDataChange = (key: keyof typeof userData, value: string) => {
-    setUserData(prev => ({
+  const handleUserDataChange = useCallback((key: keyof typeof userData, value: string) => {
+    setUserData((prev: typeof userData) => ({
       ...prev,
       [key]: value
     }));
-  };
+    setIsDirty(true);
+  }, []);
 
-  const handleSaveSettings = () => {
+  const handleSaveSettings = useCallback(() => {
     updateSettings(localSettings);
-    
     if (user) {
       setUser({
         ...user,
@@ -46,41 +66,36 @@ export const Settings = () => {
         email: userData.email,
       });
     }
-
     addNotification({
       type: 'success',
       title: 'Настройки сохранены',
       message: 'Ваши настройки успешно обновлены'
     });
-
     setIsDirty(false);
-  };
+  }, [localSettings, updateSettings, user, setUser, userData, addNotification]);
 
-  const handleResetSettings = () => {
+  const handleResetSettings = useCallback(() => {
     setLocalSettings(settings);
     setUserData({
       name: user?.name || '',
       email: user?.email || '',
     });
     setIsDirty(false);
-    
     addNotification({
       type: 'info',
       title: 'Настройки сброшены',
       message: 'Все изменения отменены'
     });
-  };
+  }, [settings, user, addNotification]);
 
-  const handleExportData = () => {
+  const handleExportData = useCallback(() => {
     const data = {
       user: userData,
       settings: localSettings,
       exportDate: new Date().toISOString(),
     };
-    
     const dataStr = JSON.stringify(data, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
-    
     const url = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = url;
@@ -89,15 +104,14 @@ export const Settings = () => {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-
     addNotification({
       type: 'success',
       title: 'Данные экспортированы',
       message: 'Резервная копия ваших данных успешно скачана'
     });
-  };
+  }, [userData, localSettings, addNotification]);
 
-  const handleImportData = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImportData = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -105,20 +119,17 @@ export const Settings = () => {
     reader.onload = (e) => {
       try {
         const data = JSON.parse(e.target?.result as string);
-        
         if (data.settings) {
           setLocalSettings(data.settings);
         }
         if (data.user) {
           setUserData(data.user);
         }
-
         addNotification({
           type: 'success',
           title: 'Данные импортированы',
           message: 'Настройки успешно загружены из файла'
         });
-
         setIsDirty(true);
       } catch (error) {
         addNotification({
@@ -129,10 +140,8 @@ export const Settings = () => {
       }
     };
     reader.readAsText(file);
-    
-    // Сброс input для возможности повторной загрузки того же файла
     event.target.value = '';
-  };
+  }, [addNotification]);
 
   return (
     <div className={styles.settings}>
@@ -142,7 +151,7 @@ export const Settings = () => {
       </div>
 
       <div className={styles.sections}>
-        {/* Секция профиля */}
+        {/* 👤 Профиль пользователя */}
         <section className={styles.section}>
           <h2>👤 Профиль пользователя</h2>
           <div className={styles.formGroup}>
@@ -169,7 +178,7 @@ export const Settings = () => {
           </div>
         </section>
 
-        {/* Секция внешнего вида */}
+        {/* 🎨 Внешний вид */}
         <section className={styles.section}>
           <h2>🎨 Внешний вид</h2>
           <div className={styles.formGroup}>
@@ -185,7 +194,6 @@ export const Settings = () => {
               <option value="auto">⚙️ Авто (системная)</option>
             </select>
           </div>
-          
           <div className={styles.formGroup}>
             <label htmlFor="language">Язык интерфейса</label>
             <select
@@ -200,7 +208,7 @@ export const Settings = () => {
           </div>
         </section>
 
-        {/* Секция уведомлений */}
+        {/* 🔔 Уведомления */}
         <section className={styles.section}>
           <h2>🔔 Уведомления</h2>
           <div className={styles.switchGroup}>
@@ -215,7 +223,6 @@ export const Settings = () => {
               <span className={styles.switchLabel}>Включить уведомления</span>
             </label>
           </div>
-          
           <div className={styles.switchGroup}>
             <label className={styles.switch}>
               <input
@@ -233,7 +240,7 @@ export const Settings = () => {
           </div>
         </section>
 
-        {/* Секция данных */}
+        {/* 💾 Управление данными */}
         <section className={styles.section}>
           <h2>💾 Управление данными</h2>
           <div className={styles.dataActions}>
@@ -243,7 +250,6 @@ export const Settings = () => {
               color="blue"
               size="medium"
             />
-            
             <div className={styles.importGroup}>
               <label htmlFor="importData" className={styles.importLabel}>
                 Импорт данных
@@ -262,7 +268,7 @@ export const Settings = () => {
           </div>
         </section>
 
-        {/* Кнопки действий */}
+        {/* Действия */}
         <section className={styles.actions}>
           <PresentationButton
             title="Сбросить изменения"
@@ -271,7 +277,6 @@ export const Settings = () => {
             size="medium"
             disabled={!isDirty}
           />
-          
           <PresentationButton
             title="Сохранить настройки"
             onClick={handleSaveSettings}
@@ -281,21 +286,21 @@ export const Settings = () => {
           />
         </section>
 
-        {/* Секция информации */}
+        {/* Информация о приложении */}
         <section className={styles.infoSection}>
           <h2>ℹ️ Информация о приложении</h2>
           <div className={styles.infoGrid}>
             <div className={styles.infoItem}>
               <strong>Версия:</strong>
-              <span>1.0.7</span>
+              <span>1.0.8</span>
             </div>
             <div className={styles.infoItem}>
               <strong>Последнее обновление:</strong>
               <span>{new Date().toLocaleDateString('ru-RU')}</span>
             </div>
             <div className={styles.infoItem}>
-              <strong>Количество презентаций:</strong>
-              <span>—</span>
+              <strong>Режим:</strong>
+              <span>{process.env.NODE_ENV === 'development' ? 'Разработка' : 'Продакшен'}</span>
             </div>
           </div>
         </section>
@@ -303,3 +308,5 @@ export const Settings = () => {
     </div>
   );
 };
+
+export const Settings = memo(SettingsComponent);

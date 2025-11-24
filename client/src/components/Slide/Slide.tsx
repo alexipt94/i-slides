@@ -1,7 +1,8 @@
+import { memo } from 'react';
 import { SlideProps } from '../../types';
 import styles from './Slide.module.css';
 
-export const Slide = ({ title, content }: SlideProps) => {
+const SlideComponent = ({ title, content }: SlideProps) => {
   return (
     <div className={styles.slide}>
       <h2 className={styles.title}>{title}</h2>
@@ -9,3 +10,5 @@ export const Slide = ({ title, content }: SlideProps) => {
     </div>
   );
 };
+
+export const Slide = memo(SlideComponent);

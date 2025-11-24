@@ -25,9 +25,7 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addNotification } = useNotifications();
-  const { savePresentation, updatePresentation, getPresentation } = usePresentationApi();
 
-  // 🎯 ИСПОЛЬЗОВАНИЕ КАСТОМНОГО ХУКА ДЛЯ УПРАВЛЕНИЯ СОСТОЯНИЕМ
   const {
     currentSlideIndex,
     slides,
@@ -47,18 +45,23 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
 
   const [presentationTitle, setPresentationTitle] = useState('Моя презентация');
   const [isLoading, setIsLoading] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
+  const { getPresentation, savePresentation, updatePresentation } = usePresentationApi();
 
-  // 🎯 ЗАГРУЗКА ПРЕЗЕНТАЦИИ ПРИ ИЗМЕНЕНИИ ID В URL
-  const loadPresentation = useCallback(async () => {
-    // 🛑 ПРЕДОТВРАЩАЕМ ПОВТОРНУЮ ЗАГРУЗКУ
-    if (id && id !== 'new' && !hasLoaded) {
+  // 🎯 ФИКС: загрузка презентации только при изменении id
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadPresentation = async (presentationId: string) => {
+      if (!presentationId || presentationId === 'new') {
+        return;
+      }
+
       setIsLoading(true);
-      console.log('🔄 Loading presentation with ID:', id);
+      console.log('🔄 Loading presentation with ID:', presentationId);
       
       try {
-        const presentation = await getPresentation(id);
-        if (presentation) {
+        const presentation = await getPresentation(presentationId);
+        if (isMounted && presentation) {
           setSlides(presentation.slides);
           setPresentationTitle(presentation.title);
           addNotification({
@@ -66,7 +69,7 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
             title: 'Презентация загружена',
             message: `"${presentation.title}" успешно загружена`
           });
-        } else {
+        } else if (isMounted) {
           addNotification({
             type: 'error',
             title: 'Ошибка загрузки',
@@ -76,24 +79,29 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
         }
       } catch (error) {
         console.error('💥 Error loading presentation:', error);
-        addNotification({
-          type: 'error',
-          title: 'Ошибка загрузки',
-          message: 'Произошла ошибка при загрузке презентации'
-        });
-        navigate('/presentations');
+        if (isMounted) {
+          addNotification({
+            type: 'error',
+            title: 'Ошибка загрузки',
+            message: 'Произошла ошибка при загрузке презентации'
+          });
+          navigate('/presentations');
+        }
       } finally {
-        setIsLoading(false);
-        setHasLoaded(true);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
-    } else {
-      setIsLoading(false);
-    }
-  }, [id, hasLoaded, getPresentation, setSlides, addNotification, navigate]);
+    };
 
-  useEffect(() => {
-    loadPresentation();
-  }, [loadPresentation]);
+    if (id) {
+      loadPresentation(id);
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id]); // 🎯 ТОЛЬКО id в зависимостях
 
   // 🎯 ОБРАБОТЧИКИ СОБЫТИЙ
   const handleUpdateSlide = useCallback((updatedSlide: SlideData) => {
@@ -114,7 +122,6 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
       });
       return;
     }
-
     deleteSlide(currentSlideIndex);
     addNotification({
       type: 'info',
@@ -135,13 +142,10 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
     setPresentationTitle(newTitle);
   }, []);
 
-  // 🎯 СОХРАНЕНИЕ ПРЕЗЕНТАЦИИ - КРИТИЧЕСКИ ВАЖНАЯ ФУНКЦИЯ
+  // 🎯 СОХРАНЕНИЕ ПРЕЗЕНТАЦИИ
   const handleSaveAndExit = useCallback(async () => {
-    console.log('💾 === START SAVE PROCESS ===');
-    console.log('📝 Presentation title:', presentationTitle);
-    console.log('🖼️ Slides:', slides);
-    console.log('🆔 ID:', id);
-
+    console.log('💾 Saving presentation...');
+    
     if (!presentationTitle.trim()) {
       addNotification({
         type: 'error',
@@ -161,28 +165,19 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
     }
 
     setIsLoading(true);
-    
+
     try {
       const presentationData = {
         title: presentationTitle,
         slides: slides,
       };
-      
-      console.log('📤 Sending data to server:', presentationData);
 
       let result;
-      
       if (id && id !== 'new') {
-        // Обновляем существующую презентацию
-        console.log('✏️ Updating existing presentation');
         result = await updatePresentation(id, presentationData);
       } else {
-        // Создаем новую презентацию
-        console.log('🆕 Creating new presentation');
         result = await savePresentation(presentationData);
       }
-
-      console.log('📨 Server response:', result);
 
       if (result) {
         addNotification({
@@ -223,42 +218,6 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
     }
   }, [id, navigate, togglePlaying, addNotification]);
 
-  const handleExportPresentation = useCallback(() => {
-    addNotification({
-      type: 'info',
-      title: 'Экспорт',
-      message: 'Функция экспорта будет доступна в следующем обновлении'
-    });
-  }, [addNotification]);
-
-  // 🎯 РЕЖИМ ПРОСМОТРА - автоматический запуск показа
-  useEffect(() => {
-    if (mode === 'view' && !isPlaying) {
-      togglePlaying();
-    }
-  }, [mode, isPlaying, togglePlaying]);
-
-  // 🎯 АВТОМАТИЧЕСКАЯ ПРОКРУТКА В РЕЖИМЕ ПОКАЗА
-  useEffect(() => {
-    let slideInterval: NodeJS.Timeout;
-
-    if (isPlaying && mode === 'view' && slides.length > 1) {
-      slideInterval = setInterval(() => {
-        if (currentSlideIndex < slides.length - 1) {
-          goToNextSlide();
-        } else {
-          clearInterval(slideInterval);
-        }
-      }, 5000); // Смена слайда каждые 5 секунд
-    }
-
-    return () => {
-      if (slideInterval) {
-        clearInterval(slideInterval);
-      }
-    };
-  }, [isPlaying, currentSlideIndex, slides.length, goToNextSlide, mode]);
-
   if (isLoading) {
     return (
       <div className={styles.loading}>
@@ -273,7 +232,7 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
       {/* 🎯 ШАПКА РЕДАКТОРА */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <button 
+          <button
             onClick={() => navigate('/presentations')}
             className={styles.backButton}
             title="Вернуться к списку презентаций"
@@ -289,7 +248,6 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
             disabled={mode === 'view'}
           />
         </div>
-        
         <div className={styles.status}>
           {mode === 'view' ? (
             <>Режим показа | Слайд {currentSlideIndex + 1} из {slides.length}</>
@@ -297,7 +255,6 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
             <>Режим: {isEditing ? 'Редактирование' : 'Просмотр'} | Слайд {currentSlideIndex + 1} из {slides.length}</>
           )}
         </div>
-
         <div className={styles.headerActions}>
           {mode === 'edit' && (
             <>
@@ -307,12 +264,6 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
                 color="green"
                 size="medium"
                 disabled={isLoading}
-              />
-              <PresentationButton
-                title="Экспорт"
-                onClick={handleExportPresentation}
-                color="blue"
-                size="medium"
               />
             </>
           )}
@@ -349,7 +300,6 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
           size="medium"
           disabled={currentSlideIndex === 0 || isEditing || mode === 'view'}
         />
-
         <div className={styles.controls}>
           {mode === 'edit' ? (
             <>
@@ -400,7 +350,6 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
             </>
           )}
         </div>
-
         <PresentationButton
           title="Вперед →"
           onClick={goToNextSlide}
@@ -434,13 +383,6 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
               </div>
             ))}
           </div>
-        </div>
-      )}
-
-      {/* 🎯 КЛАВИАТУРНЫЕ СОКРАЩЕНИЯ ДЛЯ РЕЖИМА ПРОСМОТРА */}
-      {mode === 'view' && (
-        <div className={styles.keyboardHelp}>
-          <span>Управление: ← → для навигации, Пробел для паузы/продолжения</span>
         </div>
       )}
     </div>

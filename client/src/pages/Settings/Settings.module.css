@@ -201,25 +201,24 @@
   color: var(--color-text-secondary);
 }
 
-/* Адаптивность */
 @media (max-width: 768px) {
   .settings {
     padding: 16px;
   }
-
+  
   .header h1 {
     font-size: 2em;
   }
-
+  
   .section {
     padding: 16px;
   }
-
+  
   .actions {
     flex-direction: column;
     padding: 16px;
   }
-
+  
   .infoGrid {
     grid-template-columns: 1fr;
   }
@@ -229,7 +228,7 @@
   .header h1 {
     font-size: 1.6em;
   }
-
+  
   .section h2 {
     font-size: 1.2em;
   }
