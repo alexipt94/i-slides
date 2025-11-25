@@ -1,8 +1,7 @@
 import { useCallback, useMemo, useReducer } from 'react';
-import { PresentationState, SlideData } from '../types';
-
+import { SlideData, SlideType } from '../types';
 // 🎯 ТИПИЗИРОВАННЫЕ ДЕЙСТВИЯ
-type PresentationAction =
+type PresentationAction = 
   | { type: 'SET_CURRENT_SLIDE'; payload: number }
   | { type: 'ADD_SLIDE'; payload: SlideData }
   | { type: 'UPDATE_SLIDE'; payload: { index: number; slide: SlideData } }
@@ -11,6 +10,13 @@ type PresentationAction =
   | { type: 'TOGGLE_PLAYING' }
   | { type: 'TOGGLE_EDITING' }
   | { type: 'SET_SLIDES'; payload: SlideData[] };
+
+interface PresentationState {
+  currentSlideIndex: number;
+  slides: SlideData[];
+  isPlaying: boolean;
+  isEditing: boolean;
+}
 
 const initialState: PresentationState = {
   currentSlideIndex: 0,
@@ -31,6 +37,7 @@ function presentationReducer(
         currentSlideIndex: action.payload,
         isEditing: false
       };
+    
     case 'ADD_SLIDE':
       return {
         ...state,
@@ -38,6 +45,7 @@ function presentationReducer(
         currentSlideIndex: state.slides.length,
         isEditing: true
       };
+    
     case 'UPDATE_SLIDE':
       const newSlides = [...state.slides];
       newSlides[action.payload.index] = action.payload.slide;
@@ -46,14 +54,16 @@ function presentationReducer(
         slides: newSlides,
         isEditing: false
       };
+    
     case 'DELETE_SLIDE':
       if (state.slides.length <= 1) return state;
+      
       const filteredSlides = state.slides.filter((_, index) => index !== action.payload);
       let newCurrentIndex = state.currentSlideIndex;
       
       if (action.payload === state.currentSlideIndex) {
-        newCurrentIndex = state.currentSlideIndex >= filteredSlides.length
-          ? filteredSlides.length - 1
+        newCurrentIndex = state.currentSlideIndex >= filteredSlides.length 
+          ? filteredSlides.length - 1 
           : state.currentSlideIndex;
       } else if (action.payload < state.currentSlideIndex) {
         newCurrentIndex = state.currentSlideIndex - 1;
@@ -65,17 +75,20 @@ function presentationReducer(
         currentSlideIndex: newCurrentIndex,
         isEditing: false
       };
+    
     case 'TOGGLE_PLAYING':
       return {
         ...state,
         isPlaying: !state.isPlaying,
         isEditing: false
       };
+    
     case 'TOGGLE_EDITING':
       return {
         ...state,
         isEditing: !state.isEditing
       };
+    
     case 'SET_SLIDES':
       return {
         ...state,
@@ -83,6 +96,7 @@ function presentationReducer(
         currentSlideIndex: 0,
         isEditing: false
       };
+    
     default:
       return state;
   }
@@ -123,6 +137,57 @@ export const usePresentation = (initialSlides: SlideData[] = []) => {
     dispatch({ type: 'SET_SLIDES', payload: slides });
   }, []);
 
+  const createDefaultSlide = (type: SlideType = 'content'): SlideData => {
+    const baseSlide: SlideData = {
+      id: 0, // будет установлен позже
+      type,
+      layout: { type: 'full' },
+      theme: {
+        backgroundColor: '#ffffff',
+        textColor: '#333333',
+        fontFamily: 'Arial, sans-serif',
+        fontSize: 16
+      }
+    };
+  
+    switch (type) {
+      case 'title':
+        return {
+          ...baseSlide,
+          title: 'Новый заголовок',
+          subtitle: '',
+          alignment: 'center'
+        };
+      
+      case 'content':
+        return {
+          ...baseSlide,
+          title: 'Заголовок слайда',
+          content: 'Содержимое вашего слайда...',
+          bulletPoints: []
+        };
+      
+      case 'split':
+        return {
+          ...baseSlide,
+          leftContent: 'Левая колонка...',
+          rightContent: 'Правая колонка...',
+          leftType: 'text',
+          rightType: 'text'
+        };
+      
+      default:
+        return baseSlide;
+    }
+  };
+
+  const createNewSlide = useCallback((slideType: SlideType = 'content') => {
+    const maxId = state.slides.reduce((max, slide) => Math.max(max, slide.id), 0);
+    const newSlide = createDefaultSlide(slideType);
+    newSlide.id = maxId + 1;
+    addSlide(newSlide);
+  }, [state.slides, addSlide]);
+
   // 🎯 МЕМОИЗИРОВАННЫЕ ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
   const goToNextSlide = useCallback(() => {
     const nextIndex = Math.min(state.currentSlideIndex + 1, state.slides.length - 1);
@@ -134,19 +199,9 @@ export const usePresentation = (initialSlides: SlideData[] = []) => {
     setCurrentSlide(prevIndex);
   }, [state.currentSlideIndex, setCurrentSlide]);
 
-  const createNewSlide = useCallback(() => {
-    const maxId = state.slides.reduce((max, slide) => Math.max(max, slide.id), 0);
-    const newSlide: SlideData = {
-      id: maxId + 1,
-      title: `Новый слайд ${maxId + 1}`,
-      content: "Редактируйте содержимое этого слайда"
-    };
-    addSlide(newSlide);
-  }, [state.slides, addSlide]);
-
   // 🎯 МЕМОИЗИРОВАННОЕ ТЕКУЩЕЕ СОСТОЯНИЕ
   const currentSlide = useMemo(() => 
-    state.slides[state.currentSlideIndex], 
+    state.slides[state.currentSlideIndex],
     [state.slides, state.currentSlideIndex]
   );
 
@@ -155,7 +210,6 @@ export const usePresentation = (initialSlides: SlideData[] = []) => {
     // СОСТОЯНИЕ
     ...state,
     currentSlide,
-    
     // ДЕЙСТВИЯ
     setCurrentSlide,
     addSlide,
@@ -164,7 +218,6 @@ export const usePresentation = (initialSlides: SlideData[] = []) => {
     togglePlaying,
     toggleEditing,
     setSlides,
-    
     // ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
     goToNextSlide,
     goToPrevSlide,

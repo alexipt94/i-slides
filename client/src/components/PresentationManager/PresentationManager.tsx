@@ -9,11 +9,20 @@ import { Slide } from '../Slide/Slide';
 import { SlideEditor } from '../SlideEditor/SlideEditor';
 import styles from './PresentationManager.module.css';
 
+// 🎯 ОБНОВЛЕННЫЕ НАЧАЛЬНЫЕ СЛАЙДЫ С НОВОЙ СТРУКТУРОЙ
 const initialSlides: SlideData[] = [
   {
     id: 1,
+    type: 'content',
     title: "Добро пожаловать в i-slides!",
-    content: "Это демонстрационная презентация. Используйте кнопки для навигации."
+    content: "Это демонстрационная презентация. Используйте кнопки для навигации.",
+    layout: { type: 'full' },
+    theme: {
+      backgroundColor: '#ffffff',
+      textColor: '#333333',
+      fontFamily: 'Arial, sans-serif',
+      fontSize: 16
+    }
   }
 ];
 
@@ -58,7 +67,7 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
 
       setIsLoading(true);
       console.log('🔄 Loading presentation with ID:', presentationId);
-      
+
       try {
         const presentation = await getPresentation(presentationId);
         if (isMounted && presentation) {
@@ -122,6 +131,7 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
       });
       return;
     }
+
     deleteSlide(currentSlideIndex);
     addNotification({
       type: 'info',
@@ -142,10 +152,23 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
     setPresentationTitle(newTitle);
   }, []);
 
+  // 🎯 ФУНКЦИИ ДЛЯ СОЗДАНИЯ РАЗЛИЧНЫХ ТИПОВ СЛАЙДОВ
+  const handleCreateTitleSlide = useCallback(() => {
+    createNewSlide('title');
+  }, [createNewSlide]);
+
+  const handleCreateContentSlide = useCallback(() => {
+    createNewSlide('content');
+  }, [createNewSlide]);
+
+  const handleCreateSplitSlide = useCallback(() => {
+    createNewSlide('split');
+  }, [createNewSlide]);
+
   // 🎯 СОХРАНЕНИЕ ПРЕЗЕНТАЦИИ
   const handleSaveAndExit = useCallback(async () => {
     console.log('💾 Saving presentation...');
-    
+
     if (!presentationTitle.trim()) {
       addNotification({
         type: 'error',
@@ -277,21 +300,17 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
             slide={currentSlide}
             onSave={handleUpdateSlide}
             onCancel={handleCancelEditing}
-            isEditing={isEditing}
           />
         ) : (
           <div className={styles.slideContainer}>
             {currentSlide && (
-              <Slide
-                title={currentSlide.title}
-                content={currentSlide.content}
-              />
+              <Slide slide={currentSlide} />
             )}
           </div>
         )}
       </div>
 
-      {/* 🎯 НАВИГАЦИЯ */}
+      {/* 🎯 НАВИГАЦИЯ И УПРАВЛЕНИЕ */}
       <div className={styles.navigation}>
         <PresentationButton
           title="← Назад"
@@ -300,6 +319,7 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
           size="medium"
           disabled={currentSlideIndex === 0 || isEditing || mode === 'view'}
         />
+
         <div className={styles.controls}>
           {mode === 'edit' ? (
             <>
@@ -310,12 +330,29 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
                 size="large"
                 disabled={isEditing}
               />
-              <PresentationButton
-                title="Добавить слайд"
-                onClick={createNewSlide}
-                color="green"
-                size="medium"
-              />
+              
+              {/* 🎯 КНОПКИ СОЗДАНИЯ РАЗНЫХ ТИПОВ СЛАЙДОВ */}
+              <div className={styles.slideCreation}>
+                <PresentationButton
+                  title="Заголовок"
+                  onClick={handleCreateTitleSlide}
+                  color="blue"
+                  size="medium"
+                />
+                <PresentationButton
+                  title="Текст"
+                  onClick={handleCreateContentSlide}
+                  color="green"
+                  size="medium"
+                />
+                <PresentationButton
+                  title="Разделенный"
+                  onClick={handleCreateSplitSlide}
+                  color="blue"
+                  size="medium"
+                />
+              </div>
+
               <PresentationButton
                 title="Удалить слайд"
                 onClick={handleDeleteSlide}
@@ -323,6 +360,7 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
                 size="medium"
                 disabled={slides.length <= 1 || isEditing}
               />
+
               {!isEditing && currentSlide && (
                 <PresentationButton
                   title="Редактировать слайд"
@@ -350,6 +388,7 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
             </>
           )}
         </div>
+
         <PresentationButton
           title="Вперед →"
           onClick={goToNextSlide}
@@ -378,7 +417,9 @@ export const PresentationManager = ({ mode = 'edit' }: PresentationManagerProps)
               >
                 <div className={styles.thumbnailContent}>
                   <div className={styles.thumbnailNumber}>{index + 1}</div>
-                  <strong>{slide.title}</strong>
+                  <strong>
+                    {slide.title || `Слайд ${slide.type}`}
+                  </strong>
                 </div>
               </div>
             ))}

@@ -259,3 +259,41 @@
     grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   }
 }
+
+.slideCreation {
+  display: flex;
+  gap: 10px;
+  margin: 15px 0;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.slideTypeButton {
+  padding: 8px 16px;
+  border: 2px solid;
+  border-radius: 6px;
+  background: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.slideTypeButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.slideTypeButton.title {
+  border-color: #3b82f6;
+  color: #3b82f6;
+}
+
+.slideTypeButton.content {
+  border-color: #10b981;
+  color: #10b981;
+}
+
+.slideTypeButton.split {
+  border-color: #8b5cf6;
+  color: #8b5cf6;
+}

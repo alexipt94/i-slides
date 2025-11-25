@@ -1,141 +1,243 @@
-import { useEffect } from 'react';
-import { useForm } from '../../hooks/useForm';
-import { SlideData, SlideFormData } from '../../types';
+import { useState } from 'react';
+import { SlideData, SlideType } from '../../types';
+import { Slide } from '../Slide/Slide';
 import styles from './SlideEditor.module.css';
 
 interface SlideEditorProps {
   slide: SlideData;
   onSave: (updatedSlide: SlideData) => void;
   onCancel: () => void;
-  isEditing: boolean;
 }
 
-// Валидация формы
-const validateSlideForm = (values: SlideFormData): Partial<Record<keyof SlideFormData, string>> => {
-  const errors: Partial<Record<keyof SlideFormData, string>> = {};
+export const SlideEditor = ({ slide, onSave, onCancel }: SlideEditorProps) => {
+  const [editedSlide, setEditedSlide] = useState<SlideData>(slide);
 
-  if (!values.title.trim()) {
-    errors.title = 'Заголовок не может быть пустым';
-  }
+  const updateSlide = (updates: Partial<SlideData>) => {
+    setEditedSlide(prev => ({ ...prev, ...updates }));
+  };
 
-  if (!values.content.trim()) {
-    errors.content = 'Содержание не может быть пустым';
-  }
+  const changeSlideType = (newType: SlideType) => {
+    const newSlide = createDefaultSlide(newType);
+    newSlide.id = editedSlide.id;
+    setEditedSlide(newSlide);
+  };
 
-  return errors;
-};
+  const updateTheme = (theme: Partial<SlideData['theme']>) => {
+    setEditedSlide(prev => ({
+      ...prev,
+      theme: { ...prev.theme, ...theme }
+    }));
+  };
 
-export const SlideEditor = ({ 
-  slide, 
-  onSave, 
-  onCancel,
-  isEditing 
-}: SlideEditorProps) => {
-  const {
-    values,
-    errors,
-    isSubmitting,
-    handleChange,
-    handleSubmit,
-    resetForm,
-    setFormValues
-  } = useForm<SlideFormData>({
-    initialValues: {
-      title: slide.title,
-      content: slide.content
-    },
-    onSubmit: (formValues) => {
-      const updatedSlide: SlideData = {
-        ...slide,
-        title: formValues.title.trim(),
-        content: formValues.content.trim()
-      };
-      onSave(updatedSlide);
-    },
-    validate: validateSlideForm
-  });
+  const handleSave = () => {
+    onSave(editedSlide);
+  };
 
-  // Синхронизация формы при изменении слайда
-  useEffect(() => {
-    setFormValues({
-      title: slide.title,
-      content: slide.content
-    });
-  }, [slide, setFormValues]);
+  const handleThemeChange = (property: keyof SlideData['theme'], value: string | number) => {
+    updateTheme({ [property]: value });
+  };
 
-  if (!isEditing) {
-    return null;
-  }
+  // Функция для редактирования содержимого в зависимости от типа слайда
+  const renderContentEditor = () => {
+    switch (editedSlide.type) {
+      case 'title':
+        return (
+          <div className={styles.contentEditor}>
+            <label>
+              Заголовок:
+              <input
+                type="text"
+                value={editedSlide.title || ''}
+                onChange={(e) => updateSlide({ title: e.target.value })}
+                className={styles.textInput}
+              />
+            </label>
+            <label>
+              Подзаголовок:
+              <input
+                type="text"
+                value={editedSlide.subtitle || ''}
+                onChange={(e) => updateSlide({ subtitle: e.target.value })}
+                className={styles.textInput}
+              />
+            </label>
+            <label>
+              Выравнивание:
+              <select
+                value={editedSlide.alignment || 'center'}
+                onChange={(e) => updateSlide({ alignment: e.target.value as 'left' | 'center' | 'right' })}
+                className={styles.select}
+              >
+                <option value="left">Слева</option>
+                <option value="center">По центру</option>
+                <option value="right">Справа</option>
+              </select>
+            </label>
+          </div>
+        );
+      
+      case 'content':
+        return (
+          <div className={styles.contentEditor}>
+            <label>
+              Заголовок:
+              <input
+                type="text"
+                value={editedSlide.title || ''}
+                onChange={(e) => updateSlide({ title: e.target.value })}
+                className={styles.textInput}
+              />
+            </label>
+            <label>
+              Содержимое:
+              <textarea
+                value={editedSlide.content || ''}
+                onChange={(e) => updateSlide({ content: e.target.value })}
+                className={styles.textarea}
+                rows={6}
+              />
+            </label>
+          </div>
+        );
+      
+      case 'split':
+        return (
+          <div className={styles.contentEditor}>
+            <label>
+              Левая колонка:
+              <textarea
+                value={editedSlide.leftContent || ''}
+                onChange={(e) => updateSlide({ leftContent: e.target.value })}
+                className={styles.textarea}
+                rows={4}
+              />
+            </label>
+            <label>
+              Правая колонка:
+              <textarea
+                value={editedSlide.rightContent || ''}
+                onChange={(e) => updateSlide({ rightContent: e.target.value })}
+                className={styles.textarea}
+                rows={4}
+              />
+            </label>
+          </div>
+        );
+      
+      default:
+        return <div>Редактор для этого типа слайда не реализован</div>;
+    }
+  };
 
   return (
     <div className={styles.editor}>
-      <h2 className={styles.title}>Редактирование слайда</h2>
-      
-      <form onSubmit={handleSubmit} className={styles.form}>
-        <div className={styles.formGroup}>
-          <label htmlFor="title" className={styles.label}>
-            Заголовок слайда:
-          </label>
-          <input
-            id="title"
-            type="text"
-            value={values.title}
-            onChange={(e) => handleChange('title', e.target.value)}
-            className={`${styles.input} ${errors.title ? styles.error : ''}`}
-            placeholder="Введите заголовок слайда..."
-            disabled={isSubmitting}
-          />
-          {errors.title && (
-            <span className={styles.errorText}>{errors.title}</span>
-          )}
+      <div className={styles.editorHeader}>
+        <h3>Редактор слайда</h3>
+        <select 
+          value={editedSlide.type}
+          onChange={(e) => changeSlideType(e.target.value as SlideType)}
+          className={styles.typeSelector}
+        >
+          <option value="title">Слайд-заголовок</option>
+          <option value="content">Текстовый слайд</option>
+          <option value="split">Разделенный слайд</option>
+        </select>
+      </div>
+
+      <div className={styles.editorBody}>
+        <div className={styles.preview}>
+          <Slide slide={editedSlide} />
         </div>
 
-        <div className={styles.formGroup}>
-          <label htmlFor="content" className={styles.label}>
-            Содержание слайда:
-          </label>
-          <textarea
-            id="content"
-            value={values.content}
-            onChange={(e) => handleChange('content', e.target.value)}
-            className={`${styles.textarea} ${errors.content ? styles.error : ''}`}
-            placeholder="Введите содержание слайда..."
-            rows={6}
-            disabled={isSubmitting}
-          />
-          {errors.content && (
-            <span className={styles.errorText}>{errors.content}</span>
-          )}
-        </div>
+        <div className={styles.controls}>
+          <div className={styles.controlGroup}>
+            <h4>Содержимое</h4>
+            {renderContentEditor()}
+          </div>
 
-        <div className={styles.buttons}>
-          <button 
-            type="submit" 
-            className={styles.saveButton}
-            disabled={isSubmitting}
-          >
-            {isSubmitting ? 'Сохранение...' : 'Сохранить изменения'}
-          </button>
-          
-          <button 
-            type="button" 
-            onClick={resetForm}
-            className={styles.resetButton}
-            disabled={isSubmitting || (values.title === slide.title && values.content === slide.content)}
-          >
-            Сбросить
-          </button>
-          
-          <button 
-            type="button" 
-            onClick={onCancel}
-            className={styles.cancelButton}
-            disabled={isSubmitting}
-          >
-            Отмена
-          </button>
+          <div className={styles.controlGroup}>
+            <h4>Внешний вид</h4>
+            <label>
+              Цвет фона:
+              <input
+                type="color"
+                value={editedSlide.theme.backgroundColor}
+                onChange={(e) => handleThemeChange('backgroundColor', e.target.value)}
+              />
+            </label>
+            <label>
+              Цвет текста:
+              <input
+                type="color"
+                value={editedSlide.theme.textColor}
+                onChange={(e) => handleThemeChange('textColor', e.target.value)}
+              />
+            </label>
+            <label>
+              Размер шрифта:
+              <input
+                type="range"
+                min="12"
+                max="32"
+                value={editedSlide.theme.fontSize}
+                onChange={(e) => handleThemeChange('fontSize', parseInt(e.target.value))}
+              />
+              {editedSlide.theme.fontSize}px
+            </label>
+          </div>
+
+          <div className={styles.actions}>
+            <button onClick={handleSave} className={styles.saveButton}>
+              Сохранить
+            </button>
+            <button onClick={onCancel} className={styles.cancelButton}>
+              Отмена
+            </button>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   );
+};
+
+// Вспомогательная функция для создания слайда по умолчанию
+const createDefaultSlide = (type: SlideType): SlideData => {
+  const baseSlide: SlideData = {
+    id: 0,
+    type,
+    layout: { type: 'full' },
+    theme: {
+      backgroundColor: '#ffffff',
+      textColor: '#333333',
+      fontFamily: 'Arial, sans-serif',
+      fontSize: 16
+    }
+  };
+
+  switch (type) {
+    case 'title':
+      return {
+        ...baseSlide,
+        title: 'Новый заголовок',
+        subtitle: '',
+        alignment: 'center'
+      };
+    
+    case 'content':
+      return {
+        ...baseSlide,
+        title: 'Заголовок слайда',
+        content: 'Содержимое вашего слайда...'
+      };
+    
+    case 'split':
+      return {
+        ...baseSlide,
+        leftContent: 'Левая колонка...',
+        rightContent: 'Правая колонка...'
+      };
+    
+    default:
+      return baseSlide;
+  }
 };
