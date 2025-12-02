@@ -55,18 +55,29 @@ const loadSettingsFromStorage = (): AppSettings => {
   if (typeof window === 'undefined') {
     return initialState.settings;
   }
-
+  
   try {
     const savedSettings = localStorage.getItem('i-slides-settings');
+    const savedTheme = localStorage.getItem('i-slides-theme');
+    
     if (savedSettings) {
       const parsed = JSON.parse(savedSettings);
       console.log('📥 Loaded settings from storage:', parsed);
-      return { ...initialState.settings, ...parsed };
+      
+      // Объединяем с сохраненной темой, если есть
+      const settings = { ...initialState.settings, ...parsed };
+      
+      // Если есть отдельно сохраненная тема, используем ее
+      if (savedTheme && (savedTheme === 'light' || savedTheme === 'dark')) {
+        settings.theme = savedTheme;
+      }
+      
+      return settings;
     }
   } catch (error) {
     console.error('❌ Failed to load settings from storage:', error);
   }
-
+  
   return initialState.settings;
 };
 
@@ -79,7 +90,15 @@ const applyTheme = (theme: 'light' | 'dark' | 'auto') => {
     actualTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
   
+  // Сохраняем тему в localStorage
+  localStorage.setItem('i-slides-theme', actualTheme);
+  
+  // Устанавливаем data-theme атрибут
   root.setAttribute('data-theme', actualTheme);
+  
+  // Также устанавливаем класс для body для дополнительной поддержки
+  document.body.className = actualTheme;
+  
   console.log('🎨 Applied theme:', { selected: theme, actual: actualTheme });
 };
 

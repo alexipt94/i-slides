@@ -1,52 +1,194 @@
+/* Глобальные CSS переменные для тем */
 :root {
-  /* Light theme */
-  --color-bg: #ffffff;
-  --color-surface: #f8f9fa;
-  --color-text: #212529;
-  --color-text-secondary: #6c757d;
-  --color-border: #e9ecef;
-  --color-primary: #3366ff;
-  --color-primary-hover: #2952cc;
-  --color-success: #28a745;
-  --color-warning: #ffc107;
-  --color-error: #dc3545;
-  --color-info: #17a2b8;
+  /* Светлая тема (по умолчанию) */
+  --color-primary: #3b82f6;
+  --color-primary-rgb: 59, 130, 246;
+  --color-primary-dark: #2563eb;
+  --color-primary-light: #f0f7ff; /* Бледный голубой для текста */
+  
+  --color-secondary: #8b5cf6;
+  --color-secondary-rgb: 139, 92, 246;
+  
+  /* Фоны */
+  --color-background: #ffffff;
+  --color-surface: #ffffff;
+  --color-surface-rgb: 255, 255, 255;
+  --color-surface-secondary: #f8fafc;
+  --color-surface-hover: #f1f5f9;
+  
+  /* Текст */
+  --color-text: #1e293b;
+  --color-text-secondary: #64748b;
+  --color-text-light: #94a3b8;
+  
+  /* Границы */
+  --color-border: #e2e8f0;
+  --color-border-dark: #cbd5e1;
+  
+  /* Статусы */
+  --color-success: #10b981;
+  --color-error: #ef4444;
+  --color-warning: #f59e0b;
+  --color-info: #3b82f6;
+  
+  /* Тени */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
 [data-theme="dark"] {
-  --color-bg: #121212;
-  --color-surface: #1e1e1e;
-  --color-text: #e9ecef;
-  --color-text-secondary: #adb5bd;
-  --color-border: #343a40;
-  --color-primary: #4d7cfe;
-  --color-primary-hover: #6b95ff;
-  --color-success: #34ce57;
-  --color-warning: #ffd351;
-  --color-error: #e4606d;
-  --color-info: #39c0d9;
+  /* Темная тема */
+  --color-primary: #60a5fa;
+  --color-primary-rgb: 96, 165, 250;
+  --color-primary-dark: #3b82f6;
+  --color-primary-light: #dbeafe; /* Бледный голубой для темной темы */
+  
+  --color-secondary: #a78bfa;
+  --color-secondary-rgb: 167, 139, 250;
+  
+  /* Фоны */
+  --color-background: #0f172a;
+  --color-surface: #1e293b;
+  --color-surface-rgb: 30, 41, 59;
+  --color-surface-secondary: #334155;
+  --color-surface-hover: #475569;
+  
+  /* Текст */
+  --color-text: #f1f5f9;
+  --color-text-secondary: #cbd5e1;
+  --color-text-light: #94a3b8;
+  
+  /* Границы */
+  --color-border: #475569;
+  --color-border-dark: #64748b;
+  
+  /* Статусы */
+  --color-success: #34d399;
+  --color-error: #f87171;
+  --color-warning: #fbbf24;
+  --color-info: #60a5fa;
+  
+  /* Тени */
+  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
 }
-/* Убедимся, что body использует правильные цвета */
+
+/* Базовые стили для всего приложения */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
     'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--color-background);
+  color: var(--color-text);
   transition: background-color 0.3s ease, color 0.3s ease;
-  margin: 0;
-  padding: 0;
+}
+
+#root {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Принудительно применяем цвета ко всем элементам */
-* {
-  box-sizing: border-box;
-  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+/* Общие стили для ссылок */
+a {
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: color 0.2s ease;
 }
 
+a:hover {
+  color: var(--color-primary-dark);
+}
 
-code {
-  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
-    monospace;
+/* Общие стили для кнопок */
+button {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  cursor: pointer;
+  border: none;
+}
+
+/* Утилитные классы для текста */
+.text-primary {
+  color: var(--color-primary);
+}
+
+.text-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-light {
+  color: var(--color-text-light);
+}
+
+/* Утилитные классы для фонов */
+.bg-surface {
+  background: var(--color-surface);
+}
+
+.bg-secondary {
+  background: var(--color-surface-secondary);
+}
+
+/* Плавные переходы для элементов, меняющихся с темой */
+header,
+footer,
+nav,
+.side-panel,
+.card,
+.input,
+.button,
+button[class*="Button"] {
+  transition: background-color 0.3s ease, 
+              border-color 0.3s ease, 
+              color 0.3s ease,
+              box-shadow 0.3s ease;
+}
+
+/* Стили для скроллбара */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface-secondary);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border-dark);
+}
+
+/* Selection стили */
+::selection {
+  background-color:  #d5e3f3; 
+  color: var(--color-text);
+}
+
+[data-theme="dark"] ::selection {
+  background-color: #1e3a8a; /* Темно-синий для темной темы */
+  color: white;
+}
+
+/* Focus стили для доступности */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }

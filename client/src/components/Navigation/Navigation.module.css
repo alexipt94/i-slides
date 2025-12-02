@@ -1,68 +1,64 @@
 .navigation {
-  width: 250px;
-  background-color: var(--color-surface);
-  border-right: 1px solid var(--color-border);
-  padding: 20px 0;
   display: flex;
-  flex-direction: column;
+  gap: 4px;
+  background: var(--color-surface-secondary);
+  border-radius: 12px;
+  padding: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.userSection {
-  padding: 0 20px 20px;
-  border-bottom: 1px solid var(--color-border);
-  margin-bottom: 20px;
-}
-
-.userInfo {
+.navItem {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--color-text-secondary);
+  font-weight: 500;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  border: none;
+  background: transparent;
+  cursor: pointer;
 }
 
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: var(--color-primary);
+.navItem:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+  transform: translateY(-1px);
+}
+
+.navItem.active {
+  background: var(--color-primary);
   color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(var(--color-primary-rgb), 0.3);
+}
+
+.icon {
   font-size: 16px;
 }
 
-.userName {
-  font-weight: 500;
-  color: var(--color-text);
+.label {
+  white-space: nowrap;
 }
 
-.navList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.navList li {
-  margin: 4px 0;
-}
-
-.navLink {
-  display: block;
-  padding: 12px 20px;
-  color: var(--color-text);
-  text-decoration: none;
-  transition: all 0.2s ease;
-  border-left: 3px solid transparent;
-}
-
-.navLink:hover {
-  background-color: var(--color-bg);
-  color: var(--color-primary);
-}
-
-.navLink.active {
-  background-color: var(--color-primary);
-  color: white;
-  border-left-color: var(--color-primary-hover);
+@media (max-width: 768px) {
+  .navigation {
+    gap: 2px;
+    padding: 2px;
+  }
+  
+  .navItem {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+  
+  .label {
+    display: none;
+  }
+  
+  .icon {
+    font-size: 18px;
+  }
 }

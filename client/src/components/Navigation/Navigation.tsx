@@ -1,69 +1,37 @@
-import { NavLink } from 'react-router-dom';
-import { useUser } from '../../contexts/AppContext';
+import { NavLink, useLocation } from 'react-router-dom';
+import { useLayout } from '../../layouts/LayoutContext';
 import styles from './Navigation.module.css';
 
+const navigationItems = [
+  { path: '/', label: 'Главная', icon: '🏠', layout: 'home' },
+  { path: '/presentations', label: 'Презентации', icon: '📚', layout: 'gallery' },
+  { path: '/templates', label: 'Шаблоны', icon: '🎨', layout: 'gallery' },
+  { path: '/settings', label: 'Настройки', icon: '⚙️', layout: 'settings' },
+];
+
 export const Navigation = () => {
-  const { user } = useUser();
+  const location = useLocation();
+  const { setLayout } = useLayout();
+
+  const handleNavigation = (layout: string) => {
+    setLayout(layout as any);
+  };
 
   return (
     <nav className={styles.navigation}>
-      <div className={styles.userSection}>
-        {user && (
-          <div className={styles.userInfo}>
-            <div className={styles.avatar}>
-              {user.name.charAt(0).toUpperCase()}
-            </div>
-            <span className={styles.userName}>{user.name}</span>
-          </div>
-        )}
-      </div>
-
-      <ul className={styles.navList}>
-        <li>
-          <NavLink 
-            to="/" 
-            className={({ isActive }) => 
-              `${styles.navLink} ${isActive ? styles.active : ''}`
-            }
-            end
-          >
-            🏠 Главная
-          </NavLink>
-        </li>
-        
-        <li>
-          <NavLink 
-            to="/presentations" 
-            className={({ isActive }) => 
-              `${styles.navLink} ${isActive ? styles.active : ''}`
-            }
-          >
-            📊 Мои презентации
-          </NavLink>
-        </li>
-        
-        <li>
-          <NavLink 
-            to="/create" 
-            className={({ isActive }) => 
-              `${styles.navLink} ${isActive ? styles.active : ''}`
-            }
-          >
-            ➕ Создать презентацию
-          </NavLink>
-        </li>
-
-        <li>
-          <NavLink 
-            to="/settings" 
-            className={({ isActive }) => 
-              `${styles.navLink} ${isActive ? styles.active : ''}`
-            }
-          >
-            ⚙️ Настройки
-          </NavLink>
-        </li>
-      </ul>
+      {navigationItems.map((item) => (
+        <NavLink
+          key={item.path}
+          to={item.path}
+          className={({ isActive }) =>
+            `${styles.navItem} ${isActive || location.pathname === item.path ? styles.active : ''}`
+          }
+          onClick={() => handleNavigation(item.layout)}
+        >
+          <span className={styles.icon}>{item.icon}</span>
+          <span className={styles.label}>{item.label}</span>
+        </NavLink>
+      ))}
     </nav>
   );
 };
