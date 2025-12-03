@@ -1,0 +1,101 @@
+.galleryLayout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-background);
+}
+
+.mainContent {
+  flex: 1;
+  margin-top: 64px; /* Высота хедера */
+  padding: 0;
+  overflow-y: auto;
+}
+
+.contentWrapper {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  width: 100%;
+}
+
+.filterPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.filterSection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.filterSection h4 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.filterOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 6px 0;
+}
+
+.filterOption input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+.filterOption span {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+}
+
+.sortSelect,
+.authorFilter {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 14px;
+}
+
+.sortSelect:focus,
+.authorFilter:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.detailsPanel {
+  padding: 16px;
+}
+
+.detailPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--color-text-secondary);
+  font-size: 14px;
+  text-align: center;
+  border: 2px dashed var(--color-border);
+  border-radius: 8px;
+}
+
+@media (max-width: 768px) {
+  .mainContent {
+    margin-top: 56px;
+  }
+  
+  .contentWrapper {
+    padding: 12px;
+  }
+}

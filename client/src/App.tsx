@@ -2,9 +2,10 @@ import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
 import { NotificationContainer } from './components/Notification/NotificationContainer';
 import { ThemeInitializer } from './components/ThemeInitializer/ThemeInitializer';
 import { AppProvider } from './contexts/AppContext';
-import './index.css';
 import { LayoutProvider } from './layouts/LayoutContext';
+
 // Layouts
+import { GalleryLayout } from './layouts/GalleryLayout/GalleryLayout';
 import { HomeLayout } from './layouts/HomeLayout/HomeLayout';
 
 // Pages
@@ -13,14 +14,10 @@ import { Home } from './pages/Home/Home';
 import { PresentationsList } from './pages/PresentationsList/PresentationsList';
 import { Settings } from './pages/Settings/Settings';
 
-// TODO: Временные компоненты для других лейаутов (будут реализованы в следующих уроках)
-const GalleryLayout = ({ children }: { children: React.ReactNode }) => (
-  <div>
-    <h1>Gallery Layout (Coming Soon)</h1>
-    {children}
-  </div>
-);
+// Глобальные стили
+import './index.css';
 
+// TODO: Временные компоненты для других лейаутов
 const EditorLayout = ({ children }: { children: React.ReactNode }) => (
   <div>
     <h1>Editor Layout (Coming Soon)</h1>
@@ -44,16 +41,27 @@ const App = () => {
           <div>
             <NotificationContainer />
             <Routes>
-              {/* Главная страница с новым лейаутом */}
+              {/* Главная страница */}
               <Route path="/" element={
                 <HomeLayout>
                   <Home />
                 </HomeLayout>
               } />
 
-              {/* Презентации - временно со старым лейаутом */}
+              {/* Галерея презентаций с новым лейаутом */}
               <Route path="/presentations" element={
-                <PresentationsList />
+                <GalleryLayout>
+                  <PresentationsList />
+                </GalleryLayout>
+              } />
+
+              <Route path="/templates" element={
+                <GalleryLayout>
+                  <div style={{ padding: '40px', textAlign: 'center' }}>
+                    <h2>Шаблоны презентаций</h2>
+                    <p>Скоро здесь появятся готовые шаблоны</p>
+                  </div>
+                </GalleryLayout>
               } />
 
               <Route path="/create" element={
@@ -74,7 +82,7 @@ const App = () => {
                 </EditorLayout>
               } />
 
-              {/* Настройки - временно со старым лейаутом */}
+              {/* Настройки */}
               <Route path="/settings" element={
                 <Settings />
               } />

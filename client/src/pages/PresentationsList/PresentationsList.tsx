@@ -1,200 +1,220 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { PresentationButton } from '../../components/PresentationButton/PresentationButton';
-import { useNotifications } from '../../contexts/AppContext';
-import { usePresentationApi } from '../../hooks/usePresentationApi';
+import { Breadcrumbs } from '../../components/Breadcrumbs/Breadcrumbs';
+import { BulkActions } from '../../components/BulkActions/BulkActions';
+import { ContextMenu } from '../../components/ContextMenu/ContextMenu';
+import { FolderItem } from '../../components/GalleryItem/FolderItem';
+import { PresentationItem } from '../../components/GalleryItem/PresentationItem';
+import { IconButton } from '../../components/IconButton/IconButton';
+import { useGallery } from '../../hooks/useGallery';
+import { FolderItem as FolderItemType, GalleryItem } from '../../types/gallery';
 import styles from './PresentationsList.module.css';
 
 export const PresentationsList = () => {
-  const [presentations, setPresentations] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { getAllPresentations, deletePresentation } = usePresentationApi();
-  const { addNotification } = useNotifications();
-  const navigate = useNavigate();
+  const {
+    items,
+    selectedIds,
+    contextMenu,
+    breadcrumbs,
+    currentFolderId,
+    toggleSelection,
+    clearSelection,
+    toggleFolder,
+    handleContextMenu,
+    closeContextMenu,
+    handleContextMenuAction,
+    handleBulkAction,
+    navigateToFolder,
+    createFolder,
+    createPresentation,
+    moveItems,
+  } = useGallery();
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const loadPresentations = async () => {
-      console.log('🔄 Loading presentations list...');
-      try {
-        const data = await getAllPresentations();
-        if (isMounted) {
-          if (data) {
-            setPresentations(data);
-          } else {
-            console.log('❌ Failed to load presentations');
-            setPresentations([]);
-          }
-        }
-      } catch (error) {
-        console.error('💥 Error loading presentations:', error);
-        if (isMounted) {
-          setPresentations([]);
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    loadPresentations();
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  const handleCreateNew = () => {
-    navigate('/create');
+  // Обработка начала перетаскивания
+  const handleDragStart = (e: React.DragEvent, item: GalleryItem) => {
+    e.dataTransfer.setData('text/plain', item.id);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('application/json', JSON.stringify({
+      type: item.type,
+      id: item.id,
+      name: item.name
+    }));
   };
 
-  const handleEdit = (id: string) => {
-    console.log('✏️ Editing presentation with id:', id);
-    navigate(`/presentations/${id}/edit`);
-  };
-
-  const handleView = (id: string) => {
-    console.log('👀 Viewing presentation with id:', id);
-    navigate(`/presentations/${id}/view`);
-  };
-
-  // 🎯 ФУНКЦИЯ ДЛЯ УДАЛЕНИЯ ПРЕЗЕНТАЦИИ
-  const handleDelete = async (id: string, title: string) => {
-    if (!window.confirm(`Вы уверены, что хотите удалить презентацию "${title}"?`)) {
-      return;
-    }
-
-    console.log('🗑️ Deleting presentation:', id);
+  // Обработка отпускания при перетаскивании
+  const handleDrop = (e: React.DragEvent, targetItem: GalleryItem) => {
+    e.preventDefault();
     
-    try {
-      const success = await deletePresentation(id);
-      if (success) {
-        // Удаляем презентацию из состояния
-        setPresentations(prev => prev.filter(p => p.id !== id));
-        addNotification({
-          type: 'success',
-          title: 'Презентация удалена',
-          message: `Презентация "${title}" успешно удалена`
-        });
-      } else {
-        addNotification({
-          type: 'error',
-          title: 'Ошибка удаления',
-          message: 'Не удалось удалить презентацию'
-        });
-      }
-    } catch (error) {
-      console.error('💥 Error deleting presentation:', error);
-      addNotification({
-        type: 'error',
-        title: 'Ошибка удаления',
-        message: 'Произошла ошибка при удалении презентации'
-      });
+    const draggedId = e.dataTransfer.getData('text/plain');
+    
+    if (draggedId && targetItem.type === 'folder') {
+      moveItems([draggedId], targetItem.id);
     }
   };
 
-  // 🎯 ФУНКЦИЯ ДЛЯ ПЕРЕЗАГРУЗКИ СПИСКА
-  const handleRefresh = async () => {
-    setLoading(true);
-    try {
-      const data = await getAllPresentations();
-      if (data) {
-        setPresentations(data);
-        addNotification({
-          type: 'success',
-          title: 'Список обновлен',
-          message: 'Список презентаций успешно обновлен'
-        });
-      }
-    } catch (error) {
-      console.error('💥 Error refreshing presentations:', error);
-      addNotification({
-        type: 'error',
-        title: 'Ошибка обновления',
-        message: 'Не удалось обновить список презентаций'
-      });
-    } finally {
-      setLoading(false);
+  // Обработка наведения при перетаскивании
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+  };
+
+  // Обработка клика по кнопке действий
+  const handleActionsClick = (e: React.MouseEvent, item: GalleryItem) => {
+    e.stopPropagation();
+    handleContextMenu(e, item);
+  };
+
+  // Создать новую папку
+  const handleCreateFolder = () => {
+    const name = prompt('Введите название новой папки:');
+    if (name) {
+      createFolder(name, currentFolderId);
     }
   };
 
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loading}>Загрузка презентаций...</div>
-      </div>
-    );
-  }
+  // Создать новую презентацию
+  const handleCreatePresentation = () => {
+    const name = prompt('Введите название новой презентации:');
+    if (name) {
+      createPresentation(name, currentFolderId);
+    }
+  };
+
+  // Получить вложенные элементы для папки
+  const getChildItems = (folderId: string): GalleryItem[] => {
+    return items.filter(item => item.type === 'presentation' && item.parentId === folderId);
+  };
 
   return (
-    <div className={styles.container}>
+    <div className={styles.presentationsList}>
+      {/* Шапка с кнопками создания */}
       <div className={styles.header}>
-        <h1>Мои презентации</h1>
-        <div className={styles.headerActions}>
-          <PresentationButton
-            title="Обновить список"
-            onClick={handleRefresh}
-            color="blue"
-            size="medium"
+        <div className={styles.headerLeft}>
+          <h1 className={styles.title}>Мои презентации</h1>
+          <Breadcrumbs 
+            items={breadcrumbs}
+            onNavigate={navigateToFolder}
+            currentItem={currentFolderId ? items.find(i => i.id === currentFolderId)?.name : undefined}
           />
-          <PresentationButton
-            title="Создать презентацию"
-            onClick={handleCreateNew}
-            color="green"
-            size="large"
+        </div>
+        
+        <div className={styles.headerActions}>
+          <button 
+            className={styles.createButton}
+            onClick={handleCreatePresentation}
+            title="Создать новую презентацию"
+            type="button"
+          >
+            <span className={styles.createIcon}>✨</span>
+            <span className={styles.createText}>Создать презентацию</span>
+          </button>
+          
+          <IconButton
+            icon="📁"
+            onClick={handleCreateFolder}
+            ariaLabel="Создать новую папку"
+            className={styles.createFolderButton}
+            variant="secondary"
           />
         </div>
       </div>
 
-      <div className={styles.list}>
-        {presentations.map(presentation => (
-          <div key={presentation.id} className={styles.item}>
-            <div className={styles.info}>
-              <h3>{presentation.title}</h3>
-              <div className={styles.details}>
-                <span>Слайдов: {presentation.slides?.length || 0}</span>
-                <span>Создано: {new Date(presentation.createdAt).toLocaleDateString('ru-RU')}</span>
-                <span>Обновлено: {new Date(presentation.updatedAt).toLocaleDateString('ru-RU')}</span>
-              </div>
-            </div>
-            <div className={styles.actions}>
-              <PresentationButton
-                title="Редактировать"
-                onClick={() => handleEdit(presentation.id)}
-                color="blue"
-                size="medium"
-              />
-              <PresentationButton
-                title="Просмотреть"
-                onClick={() => handleView(presentation.id)}
-                color="green"
-                size="medium"
-              />
-              {/* 🎯 КНОПКА УДАЛЕНИЯ */}
-              <PresentationButton
-                title="Удалить"
-                onClick={() => handleDelete(presentation.id, presentation.title)}
-                color="red"
-                size="medium"
-              />
+      {/* Основной контент - список на всю ширину */}
+      <div className={styles.content}>
+        {items.length === 0 ? (
+          <div className={styles.emptyState}>
+            <div className={styles.emptyIcon}>📂</div>
+            <h3>Папка пуста</h3>
+            <p>Создайте новую презентацию или папку, чтобы начать работу</p>
+            <div className={styles.emptyActions}>
+              <button 
+                className={styles.emptyButton}
+                onClick={handleCreatePresentation}
+                type="button"
+              >
+                🆕 Создать презентацию
+              </button>
+              <button 
+                className={`${styles.emptyButton} ${styles.secondary}`}
+                onClick={handleCreateFolder}
+                type="button"
+              >
+                📁 Создать папку
+              </button>
             </div>
           </div>
-        ))}
+        ) : (
+          <div className={styles.itemsList}>
+            {items.map((item) => {
+              const isSelected = selectedIds.has(item.id);
+
+              if (item.type === 'folder') {
+                const folder = item as FolderItemType;
+                return (
+                  <div key={folder.id} className={styles.gridItem}>
+                    <FolderItem
+                      item={folder}
+                      isSelected={isSelected}
+                      onSelect={toggleSelection}
+                      onContextMenu={handleContextMenu}
+                      onDragStart={handleDragStart}
+                      onDrop={(e) => handleDrop(e, folder)}
+                      onDragOver={handleDragOver}
+                      onActionsClick={handleActionsClick}
+                      onToggleExpand={() => toggleFolder(folder.id)}
+                    >
+                      {getChildItems(folder.id).map((child) => (
+                        <div key={child.id} className={styles.childItem}>
+                          <PresentationItem
+                            item={child as any}
+                            isSelected={selectedIds.has(child.id)}
+                            onSelect={toggleSelection}
+                            onContextMenu={handleContextMenu}
+                            onDragStart={handleDragStart}
+                            onDrop={(e) => handleDrop(e, child)}
+                            onDragOver={handleDragOver}
+                            onActionsClick={handleActionsClick}
+                          />
+                        </div>
+                      ))}
+                    </FolderItem>
+                  </div>
+                );
+              }
+
+              return (
+                <div key={item.id} className={styles.gridItem}>
+                  <PresentationItem
+                    item={item as any}
+                    isSelected={isSelected}
+                    onSelect={toggleSelection}
+                    onContextMenu={handleContextMenu}
+                    onDragStart={handleDragStart}
+                    onDrop={(e) => handleDrop(e, item)}
+                    onDragOver={handleDragOver}
+                    onActionsClick={handleActionsClick}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      {presentations.length === 0 && (
-        <div className={styles.empty}>
-          <p>У вас пока нет презентаций</p>
-          <PresentationButton
-            title="Создать первую презентацию"
-            onClick={handleCreateNew}
-            color="green"
-            size="large"
-          />
-        </div>
+      {/* Контекстное меню и массовые действия */}
+      {contextMenu && (
+        <ContextMenu
+          menu={contextMenu}
+          onClose={closeContextMenu}
+          onAction={handleContextMenuAction}
+          itemType={contextMenu.itemType}
+        />
       )}
+
+      <BulkActions
+        selectedCount={selectedIds.size}
+        onAction={handleBulkAction}
+        onClearSelection={clearSelection}
+        isVisible={selectedIds.size > 0}
+      />
     </div>
   );
 };

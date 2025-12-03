@@ -1,0 +1,142 @@
+.bulkActions {
+  position: fixed;
+  bottom: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 16px 24px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  min-width: 400px;
+  animation: slideUp 0.3s ease-out;
+}
+
+.selectedInfo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.selectedCount {
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.selectedCount strong {
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.clearButton {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.clearButton:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.actionButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actionButton.info {
+  background: rgba(var(--color-primary-rgb), 0.1);
+  color: var(--color-primary);
+}
+
+.actionButton.info:hover {
+  background: rgba(var(--color-primary-rgb), 0.2);
+}
+
+.actionButton.success {
+  background: rgba(var(--color-success-rgb), 0.1);
+  color: var(--color-success);
+}
+
+.actionButton.success:hover {
+  background: rgba(var(--color-success-rgb), 0.2);
+}
+
+.actionButton.danger {
+  background: rgba(var(--color-error-rgb), 0.1);
+  color: var(--color-error);
+}
+
+.actionButton.danger:hover {
+  background: rgba(var(--color-error-rgb), 0.2);
+}
+
+.actionIcon {
+  font-size: 16px;
+}
+
+.actionLabel {
+  white-space: nowrap;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .bulkActions {
+    flex-direction: column;
+    gap: 16px;
+    min-width: 300px;
+    padding: 12px 16px;
+  }
+  
+  .selectedInfo {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .actionButton {
+    flex: 1;
+    justify-content: center;
+  }
+  
+  .actionLabel {
+    display: none;
+  }
+}

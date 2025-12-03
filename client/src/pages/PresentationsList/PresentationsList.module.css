@@ -1,101 +1,234 @@
-.container {
-  padding: 20px;
-  max-width: 1000px;
-  margin: 0 auto;
+.presentationsList {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 64px);
+  background: var(--color-background);
+  padding: 24px;
+  width: 100%;
 }
 
 .header {
   display: flex;
+  align-items: flex-start;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 30px;
+  margin-bottom: 32px;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 20px;
 }
 
-.header h1 {
+.headerLeft {
+  flex: 1;
+  min-width: 300px;
+}
+
+.title {
+  margin: 0 0 16px 0;
+  font-size: 28px;
+  font-weight: 700;
   color: var(--color-text);
-  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.title::before {
+  content: '📁';
+  font-size: 24px;
 }
 
 .headerActions {
   display: flex;
-  gap: 12px;
   align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.loading {
-  text-align: center;
-  padding: 40px;
-  color: var(--color-text-secondary);
-  font-size: 1.1em;
+.createButton {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+  box-shadow: 0 4px 12px rgba(var(--color-primary-rgb), 0.2);
 }
 
-.list {
+.createButton:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(var(--color-primary-rgb), 0.3);
+}
+
+.createIcon {
+  font-size: 18px;
+}
+
+.createFolderButton {
+  width: 48px;
+  height: 48px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.createFolderButton:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Основной контент */
+.content {
+  flex: 1;
+  background: transparent;
+  border-radius: 0;
+  border: none;
+  overflow: visible;
+  width: 100%;
+}
+
+.emptyState {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 20px;
+  text-align: center;
+  width: 100%;
+  background: var(--color-surface);
+  border-radius: 20px;
+  border: 2px dashed var(--color-border);
+  margin: 40px 0;
+}
+
+.emptyIcon {
+  font-size: 72px;
+  margin-bottom: 24px;
+  opacity: 0.3;
+  animation: float 3s ease-in-out infinite;
+}
+
+.emptyState h3 {
+  margin: 0 0 16px 0;
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.emptyState p {
+  margin: 0 0 32px 0;
+  color: var(--color-text-secondary);
+  max-width: 400px;
+  line-height: 1.6;
+  font-size: 15px;
+}
+
+.emptyActions {
+  display: flex;
   gap: 16px;
 }
 
-.item {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  padding: 20px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background-color: var(--color-surface);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  gap: 20px;
+.emptyButton {
+  padding: 14px 28px;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 160px;
 }
 
-.item:hover {
+.emptyButton:hover {
+  background: var(--color-primary-dark);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 6px 16px rgba(var(--color-primary-rgb), 0.2);
 }
 
-.info {
-  flex: 1;
-}
-
-.info h3 {
-  margin: 0 0 12px 0;
+.emptyButton.secondary {
+  background: var(--color-surface);
   color: var(--color-text);
-  font-size: 1.2em;
+  border: 1px solid var(--color-border);
 }
 
-.details {
+.emptyButton.secondary:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-primary);
+}
+
+/* Список элементов на всю ширину */
+.itemsList {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 16px;
+  width: 100%;
 }
 
-.details span {
-  color: var(--color-text-secondary);
-  font-size: 0.9em;
+.gridItem {
+  width: 100%;
 }
 
-.actions {
+.childItem {
+  margin-top: 12px;
+  width: 100%;
+}
+
+/* Статус загрузки */
+.loadingState {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  min-width: 140px;
-}
-
-.empty {
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
   text-align: center;
-  padding: 60px 40px;
-  color: var(--color-text-secondary);
-  border: 2px dashed var(--color-border);
-  border-radius: 8px;
-  background-color: var(--color-surface);
 }
 
-.empty p {
+.spinner {
+  width: 48px;
+  height: 48px;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
   margin-bottom: 20px;
-  font-size: 1.1em;
 }
 
+.loadingState p {
+  color: var(--color-text-secondary);
+  font-size: 15px;
+}
+
+/* Анимации */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Адаптивность */
 @media (max-width: 768px) {
   .header {
     flex-direction: column;
@@ -103,29 +236,51 @@
   }
   
   .headerActions {
-    justify-content: center;
-  }
-  
-  .item {
-    flex-direction: column;
-    gap: 16px;
-  }
-  
-  .actions {
-    flex-direction: row;
-    justify-content: flex-end;
-    min-width: auto;
     width: 100%;
+    justify-content: space-between;
+  }
+  
+  .createButton {
+    flex: 1;
+  }
+  
+  .emptyState {
+    padding: 40px 20px;
+    margin: 20px 0;
+  }
+  
+  .emptyIcon {
+    font-size: 48px;
+  }
+  
+  .emptyActions {
+    flex-direction: column;
+    width: 100%;
+    max-width: 280px;
+  }
+  
+  .emptyButton {
+    width: 100%;
+    min-width: auto;
   }
 }
 
 @media (max-width: 480px) {
-  .container {
+  .presentationsList {
     padding: 16px;
   }
   
-  .actions {
-    flex-wrap: wrap;
+  .title {
+    font-size: 24px;
+  }
+  
+  .headerActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .createButton {
+    width: 100%;
     justify-content: center;
   }
 }
