@@ -1,0 +1,25 @@
+.container {
+  width: 100%;
+  position: relative;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 20px;
+  padding: 20px 0;
+}
+
+.grid.dragging > *:not([data-dragging="true"]) {
+  /* Неактивные элементы становятся немного прозрачными */
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 16px 0;
+  }
+}

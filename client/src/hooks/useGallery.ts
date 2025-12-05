@@ -1,7 +1,6 @@
 import { useCallback, useState } from 'react';
 import { ContextMenuState, FolderItem, GalleryItem, PresentationItem } from '../types/gallery';
 
-// Моковые данные для демонстрации
 const mockPresentations: PresentationItem[] = [
   {
     id: 'pres-1',
@@ -11,9 +10,8 @@ const mockPresentations: PresentationItem[] = [
     createdAt: '2024-01-15T10:30:00Z',
     updatedAt: '2024-03-20T14:45:00Z',
     author: 'Иван Петров',
-    thumbnail: 'https://via.placeholder.com/120x80/3b82f6/ffffff?text=Q1',
+    thumbnail: 'https://api.dicebear.com/7.x/shapes/svg?seed=Q1-report',
     slideCount: 24,
-    size: 2457600,
   },
   {
     id: 'pres-2',
@@ -23,9 +21,8 @@ const mockPresentations: PresentationItem[] = [
     createdAt: '2024-02-10T09:15:00Z',
     updatedAt: '2024-03-25T16:20:00Z',
     author: 'Анна Сидорова',
-    thumbnail: 'https://via.placeholder.com/120x80/10b981/ffffff?text=INV',
+    thumbnail: 'https://api.dicebear.com/7.x/shapes/svg?seed=Investors',
     slideCount: 18,
-    size: 1887436,
   },
   {
     id: 'pres-3',
@@ -35,9 +32,8 @@ const mockPresentations: PresentationItem[] = [
     createdAt: '2024-03-01T11:00:00Z',
     updatedAt: '2024-03-28T13:10:00Z',
     author: 'Петр Иванов',
-    thumbnail: 'https://via.placeholder.com/120x80/8b5cf6/ffffff?text=NEW',
+    thumbnail: 'https://api.dicebear.com/7.x/shapes/svg?seed=Training',
     slideCount: 32,
-    size: 3145728,
   },
 ];
 
@@ -67,14 +63,8 @@ const mockFolders: FolderItem[] = [
 ];
 
 export const useGallery = () => {
-  const [items, setItems] = useState<GalleryItem[]>([
-    ...mockFolders,
-    ...mockPresentations.filter(p => !p.parentId),
-  ]);
-  
   const [folders, setFolders] = useState<FolderItem[]>(mockFolders);
   const [presentations, setPresentations] = useState<PresentationItem[]>(mockPresentations);
-  
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
@@ -82,22 +72,23 @@ export const useGallery = () => {
     { id: null, name: 'Все презентации' }
   ]);
 
-  // Получить элементы для текущей папки
   const getItemsForCurrentFolder = useCallback(() => {
     if (!currentFolderId) {
-      return items.filter(item => !item.parentId);
+      return [
+        ...folders.filter(f => !f.parentId),
+        ...presentations.filter(p => !p.parentId),
+      ];
     }
-    
+
     const folder = folders.find(f => f.id === currentFolderId);
     if (!folder) return [];
-    
+
     return [
       folder,
       ...presentations.filter(p => p.parentId === currentFolderId),
     ];
-  }, [currentFolderId, items, folders, presentations]);
+  }, [currentFolderId, folders, presentations]);
 
-  // Переключение выбора элемента
   const toggleSelection = useCallback((id: string) => {
     setSelectedIds(prev => {
       const newSelected = new Set(prev);
@@ -110,17 +101,10 @@ export const useGallery = () => {
     });
   }, []);
 
-  // Выделить все элементы
-  const selectAll = useCallback((ids: string[]) => {
-    setSelectedIds(new Set(ids));
-  }, []);
-
-  // Снять выделение
   const clearSelection = useCallback(() => {
     setSelectedIds(new Set());
   }, []);
 
-  // Переключить состояние папки (свернуть/развернуть)
   const toggleFolder = useCallback((folderId: string) => {
     setFolders(prev => prev.map(folder => {
       if (folder.id === folderId) {
@@ -130,7 +114,6 @@ export const useGallery = () => {
     }));
   }, []);
 
-  // Создать новую папку
   const createFolder = useCallback((name: string, parentId: string | null = null) => {
     const newFolder: FolderItem = {
       id: `folder-${Date.now()}`,
@@ -145,14 +128,9 @@ export const useGallery = () => {
     };
     
     setFolders(prev => [...prev, newFolder]);
-    if (!parentId || parentId === currentFolderId) {
-      setItems(prev => [...prev, newFolder]);
-    }
-    
     return newFolder;
-  }, [currentFolderId]);
+  }, []);
 
-  // Создать новую презентацию
   const createPresentation = useCallback((name: string, parentId: string | null = null) => {
     const newPresentation: PresentationItem = {
       id: `pres-${Date.now()}`,
@@ -163,27 +141,56 @@ export const useGallery = () => {
       updatedAt: new Date().toISOString(),
       author: 'Текущий пользователь',
       slideCount: 1,
-      size: 102400,
     };
     
     setPresentations(prev => [...prev, newPresentation]);
-    if (!parentId || parentId === currentFolderId) {
-      setItems(prev => [...prev, newPresentation]);
+    
+    // Обновляем счетчик родительской папки
+    if (parentId) {
+      setFolders(prev => prev.map(folder => {
+        if (folder.id === parentId) {
+          return { 
+            ...folder, 
+            childrenCount: folder.childrenCount + 1,
+            updatedAt: new Date().toISOString()
+          };
+        }
+        return folder;
+      }));
     }
     
     return newPresentation;
-  }, [currentFolderId]);
+  }, []);
 
-  // Удалить элементы
   const deleteItems = useCallback((ids: string[]) => {
+    // Удаляем папки
     setFolders(prev => prev.filter(folder => !ids.includes(folder.id)));
+    
+    // Удаляем презентации
+    const deletedPresentations = presentations.filter(p => ids.includes(p.id));
     setPresentations(prev => prev.filter(pres => !ids.includes(pres.id)));
-    setItems(prev => prev.filter(item => !ids.includes(item.id)));
+    
+    // Обновляем счетчики родительских папок
+    deletedPresentations.forEach(pres => {
+      if (pres.parentId) {
+        setFolders(prev => prev.map(folder => {
+          if (folder.id === pres.parentId) {
+            return { 
+              ...folder, 
+              childrenCount: Math.max(0, folder.childrenCount - 1),
+              updatedAt: new Date().toISOString()
+            };
+          }
+          return folder;
+        }));
+      }
+    });
+    
     clearSelection();
-  }, [clearSelection]);
+  }, [presentations, clearSelection]);
 
-  // Переименовать элемент
   const renameItem = useCallback((id: string, newName: string) => {
+    // Переименовываем папки
     setFolders(prev => prev.map(folder => {
       if (folder.id === id) {
         return { ...folder, name: newName, updatedAt: new Date().toISOString() };
@@ -191,46 +198,88 @@ export const useGallery = () => {
       return folder;
     }));
     
+    // Переименовываем презентации
     setPresentations(prev => prev.map(pres => {
       if (pres.id === id) {
         return { ...pres, name: newName, updatedAt: new Date().toISOString() };
       }
       return pres;
     }));
-    
-    setItems(prev => prev.map(item => {
-      if (item.id === id) {
-        return { ...item, name: newName, updatedAt: new Date().toISOString() };
-      }
-      return item;
-    }));
   }, []);
 
-  // Переместить элементы в папку
   const moveItems = useCallback((itemIds: string[], targetFolderId: string | null) => {
+    // Проверяем, что не перемещаем папку саму в себя
+    if (itemIds.includes(targetFolderId || '')) {
+      console.warn('Cannot move folder into itself');
+      return;
+    }
+  
+    // Обновляем parentId у перемещаемых элементов
+    setPresentations(prev => {
+      const updated = [...prev];
+      const movedPresentations: PresentationItem[] = [];
+  
+      itemIds.forEach(itemId => {
+        const index = updated.findIndex(p => p.id === itemId);
+        if (index !== -1) {
+          const oldPresentation = updated[index];
+          const oldParentId = oldPresentation.parentId;
+          
+          // Обновляем счетчики старой папки
+          if (oldParentId) {
+            setFolders(folders => folders.map(f => {
+              if (f.id === oldParentId) {
+                return { 
+                  ...f, 
+                  childrenCount: Math.max(0, f.childrenCount - 1),
+                  updatedAt: new Date().toISOString()
+                };
+              }
+              return f;
+            }));
+          }
+          
+          // Обновляем счетчики новой папки
+          if (targetFolderId) {
+            setFolders(folders => folders.map(f => {
+              if (f.id === targetFolderId) {
+                return { 
+                  ...f, 
+                  childrenCount: f.childrenCount + 1,
+                  updatedAt: new Date().toISOString()
+                };
+              }
+              return f;
+            }));
+          }
+          
+          movedPresentations.push(oldPresentation);
+          updated[index] = { 
+            ...oldPresentation, 
+            parentId: targetFolderId,
+            updatedAt: new Date().toISOString()
+          };
+        }
+      });
+  
+      return updated;
+    });
+  
+    // Также обновляем папки если нужно
     setFolders(prev => prev.map(folder => {
       if (itemIds.includes(folder.id)) {
-        return { ...folder, parentId: targetFolderId, updatedAt: new Date().toISOString() };
+        return { 
+          ...folder, 
+          parentId: targetFolderId,
+          updatedAt: new Date().toISOString()
+        };
       }
       return folder;
     }));
-    
-    setPresentations(prev => prev.map(pres => {
-      if (itemIds.includes(pres.id)) {
-        return { ...pres, parentId: targetFolderId, updatedAt: new Date().toISOString() };
-      }
-      return pres;
-    }));
-    
-    // Обновляем список видимых элементов
-    if (targetFolderId !== currentFolderId) {
-      setItems(prev => prev.filter(item => !itemIds.includes(item.id)));
-    }
-    
+  
     clearSelection();
-  }, [currentFolderId, clearSelection]);
+  }, [clearSelection]);
 
-  // Обработка контекстного меню
   const handleContextMenu = useCallback((e: React.MouseEvent, item: GalleryItem) => {
     e.preventDefault();
     setContextMenu({
@@ -241,12 +290,10 @@ export const useGallery = () => {
     });
   }, []);
 
-  // Закрыть контекстное меню
   const closeContextMenu = useCallback(() => {
     setContextMenu(null);
   }, []);
 
-  // Обработка действия из контекстного меню
   const handleContextMenuAction = useCallback((action: string, itemId: string) => {
     closeContextMenu();
     
@@ -271,16 +318,11 @@ export const useGallery = () => {
         const folderName = prompt('Введите название папки:');
         if (folderName) createFolder(folderName, itemId);
         break;
-      case 'collapse_all':
-      case 'expand_all':
-        // Логика сворачивания/разворачивания всех вложенных папок
-        break;
       default:
         console.log('Действие:', action, 'для элемента:', itemId);
     }
   }, [closeContextMenu, renameItem, deleteItems, createPresentation, createFolder]);
 
-  // Обработка массовых действий
   const handleBulkAction = useCallback((action: string) => {
     const selectedArray = Array.from(selectedIds);
     
@@ -302,11 +344,10 @@ export const useGallery = () => {
     }
   }, [selectedIds, deleteItems, moveItems]);
 
-  // Перейти в папку
   const navigateToFolder = useCallback((folderId: string | null) => {
     setCurrentFolderId(folderId);
-    
     const folder = folders.find(f => f.id === folderId);
+    
     if (folder) {
       setBreadcrumbs([
         { id: null, name: 'Все презентации' },
@@ -318,16 +359,14 @@ export const useGallery = () => {
   }, [folders]);
 
   return {
-    // Состояние
     items: getItemsForCurrentFolder(),
+    folders,
+    presentations,
     selectedIds,
     contextMenu,
     currentFolderId,
     breadcrumbs,
-    
-    // Действия с элементами
     toggleSelection,
-    selectAll,
     clearSelection,
     toggleFolder,
     createFolder,
@@ -335,16 +374,10 @@ export const useGallery = () => {
     deleteItems,
     renameItem,
     moveItems,
-    
-    // Контекстное меню
     handleContextMenu,
     closeContextMenu,
     handleContextMenuAction,
-    
-    // Массовые действия
     handleBulkAction,
-    
-    // Навигация
     navigateToFolder,
   };
 };

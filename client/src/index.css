@@ -210,3 +210,46 @@ button[class*="Button"] {
   outline: 2px solid var(--color-primary);
   outline-offset: 2px;
 }
+
+/* DnD стили */
+[data-dnd-kit-droppable] {
+  transition: background-color 0.2s ease;
+}
+
+[data-dnd-kit-draggable] {
+  cursor: grab;
+  user-select: none;
+}
+
+[data-dnd-kit-draggable]:active {
+  cursor: grabbing;
+}
+
+/* Отключаем выделение текста при drag */
+.sortable-item {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Анимация появления/исчезновения DragOverlay */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+[role="application"] [data-dnd-kit-drag-overlay] {
+  animation: fadeIn 0.2s ease;
+}
+
+/* Плавные переходы для сетки при drag */
+.gallery-grid {
+  transition: grid-template-columns 0.3s ease;
+}

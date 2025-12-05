@@ -1,11 +1,10 @@
+import { useCallback } from 'react';
 import { Breadcrumbs } from '../../components/Breadcrumbs/Breadcrumbs';
 import { BulkActions } from '../../components/BulkActions/BulkActions';
 import { ContextMenu } from '../../components/ContextMenu/ContextMenu';
-import { FolderItem } from '../../components/GalleryItem/FolderItem';
-import { PresentationItem } from '../../components/GalleryItem/PresentationItem';
+import { GalleryContainer } from '../../components/Gallery/GalleryContainer';
 import { IconButton } from '../../components/IconButton/IconButton';
 import { useGallery } from '../../hooks/useGallery';
-import { FolderItem as FolderItemType, GalleryItem } from '../../types/gallery';
 import styles from './PresentationsList.module.css';
 
 export const PresentationsList = () => {
@@ -18,7 +17,6 @@ export const PresentationsList = () => {
     toggleSelection,
     clearSelection,
     toggleFolder,
-    handleContextMenu,
     closeContextMenu,
     handleContextMenuAction,
     handleBulkAction,
@@ -26,43 +24,9 @@ export const PresentationsList = () => {
     createFolder,
     createPresentation,
     moveItems,
+    renameItem,
   } = useGallery();
 
-  // Обработка начала перетаскивания
-  const handleDragStart = (e: React.DragEvent, item: GalleryItem) => {
-    e.dataTransfer.setData('text/plain', item.id);
-    e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('application/json', JSON.stringify({
-      type: item.type,
-      id: item.id,
-      name: item.name
-    }));
-  };
-
-  // Обработка отпускания при перетаскивании
-  const handleDrop = (e: React.DragEvent, targetItem: GalleryItem) => {
-    e.preventDefault();
-    
-    const draggedId = e.dataTransfer.getData('text/plain');
-    
-    if (draggedId && targetItem.type === 'folder') {
-      moveItems([draggedId], targetItem.id);
-    }
-  };
-
-  // Обработка наведения при перетаскивании
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  };
-
-  // Обработка клика по кнопке действий
-  const handleActionsClick = (e: React.MouseEvent, item: GalleryItem) => {
-    e.stopPropagation();
-    handleContextMenu(e, item);
-  };
-
-  // Создать новую папку
   const handleCreateFolder = () => {
     const name = prompt('Введите название новой папки:');
     if (name) {
@@ -70,7 +34,6 @@ export const PresentationsList = () => {
     }
   };
 
-  // Создать новую презентацию
   const handleCreatePresentation = () => {
     const name = prompt('Введите название новой презентации:');
     if (name) {
@@ -78,26 +41,27 @@ export const PresentationsList = () => {
     }
   };
 
-  // Получить вложенные элементы для папки
-  const getChildItems = (folderId: string): GalleryItem[] => {
-    return items.filter(item => item.type === 'presentation' && item.parentId === folderId);
-  };
+  const handleItemMove = useCallback((draggedId: string, targetFolderId: string | null) => {
+    moveItems([draggedId], targetFolderId);
+  }, [moveItems]);
+
+  const handleItemRename = useCallback((id: string, newName: string) => {
+    renameItem(id, newName);
+  }, [renameItem]);
 
   return (
     <div className={styles.presentationsList}>
-      {/* Шапка с кнопками создания */}
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <h1 className={styles.title}>Мои презентации</h1>
-          <Breadcrumbs 
+          <Breadcrumbs
             items={breadcrumbs}
             onNavigate={navigateToFolder}
             currentItem={currentFolderId ? items.find(i => i.id === currentFolderId)?.name : undefined}
           />
         </div>
-        
         <div className={styles.headerActions}>
-          <button 
+          <button
             className={styles.createButton}
             onClick={handleCreatePresentation}
             title="Создать новую презентацию"
@@ -106,7 +70,6 @@ export const PresentationsList = () => {
             <span className={styles.createIcon}>✨</span>
             <span className={styles.createText}>Создать презентацию</span>
           </button>
-          
           <IconButton
             icon="📁"
             onClick={handleCreateFolder}
@@ -117,22 +80,21 @@ export const PresentationsList = () => {
         </div>
       </div>
 
-      {/* Основной контент - список на всю ширину */}
       <div className={styles.content}>
         {items.length === 0 ? (
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>📂</div>
             <h3>Папка пуста</h3>
-            <p>Создайте новую презентацию или папку, чтобы начать работу</p>
+            <p>Создайте новую презентацию или перетащите файлы сюда</p>
             <div className={styles.emptyActions}>
-              <button 
+              <button
                 className={styles.emptyButton}
                 onClick={handleCreatePresentation}
                 type="button"
               >
                 🆕 Создать презентацию
               </button>
-              <button 
+              <button
                 className={`${styles.emptyButton} ${styles.secondary}`}
                 onClick={handleCreateFolder}
                 type="button"
@@ -142,64 +104,17 @@ export const PresentationsList = () => {
             </div>
           </div>
         ) : (
-          <div className={styles.itemsList}>
-            {items.map((item) => {
-              const isSelected = selectedIds.has(item.id);
-
-              if (item.type === 'folder') {
-                const folder = item as FolderItemType;
-                return (
-                  <div key={folder.id} className={styles.gridItem}>
-                    <FolderItem
-                      item={folder}
-                      isSelected={isSelected}
-                      onSelect={toggleSelection}
-                      onContextMenu={handleContextMenu}
-                      onDragStart={handleDragStart}
-                      onDrop={(e) => handleDrop(e, folder)}
-                      onDragOver={handleDragOver}
-                      onActionsClick={handleActionsClick}
-                      onToggleExpand={() => toggleFolder(folder.id)}
-                    >
-                      {getChildItems(folder.id).map((child) => (
-                        <div key={child.id} className={styles.childItem}>
-                          <PresentationItem
-                            item={child as any}
-                            isSelected={selectedIds.has(child.id)}
-                            onSelect={toggleSelection}
-                            onContextMenu={handleContextMenu}
-                            onDragStart={handleDragStart}
-                            onDrop={(e) => handleDrop(e, child)}
-                            onDragOver={handleDragOver}
-                            onActionsClick={handleActionsClick}
-                          />
-                        </div>
-                      ))}
-                    </FolderItem>
-                  </div>
-                );
-              }
-
-              return (
-                <div key={item.id} className={styles.gridItem}>
-                  <PresentationItem
-                    item={item as any}
-                    isSelected={isSelected}
-                    onSelect={toggleSelection}
-                    onContextMenu={handleContextMenu}
-                    onDragStart={handleDragStart}
-                    onDrop={(e) => handleDrop(e, item)}
-                    onDragOver={handleDragOver}
-                    onActionsClick={handleActionsClick}
-                  />
-                </div>
-              );
-            })}
-          </div>
+          <GalleryContainer
+            items={items}
+            selectedIds={selectedIds}
+            onItemSelect={toggleSelection}
+            onItemRename={handleItemRename}
+            onItemMove={handleItemMove}
+            onFolderToggle={toggleFolder}
+          />
         )}
       </div>
 
-      {/* Контекстное меню и массовые действия */}
       {contextMenu && (
         <ContextMenu
           menu={contextMenu}

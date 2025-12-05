@@ -15,7 +15,7 @@ export interface PresentationItem extends BaseItem {
   thumbnail?: string;
   slideCount: number;
   lastOpened?: string;
-  size?: number; // в байтах
+  // size?: number; // УБРАНО
 }
 
 export interface FolderItem extends BaseItem {
@@ -28,13 +28,7 @@ export interface FolderItem extends BaseItem {
 export type GalleryItem = PresentationItem | FolderItem;
 
 export interface BreadcrumbItem {
-  id: string;
-  name: string;
-}
-
-export interface DragItem {
-  type: 'presentation' | 'folder';
-  id: string;
+  id: string | null;
   name: string;
 }
 

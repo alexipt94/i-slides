@@ -1,0 +1,243 @@
+/* Стили для счетчика */
+.counterBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.folderCounter {
+  background: var(--color-primary-light);
+  color: var(--color-primary-dark);
+  border: 2px solid var(--color-primary);
+}
+
+.presentationCounter {
+  background: var(--color-success-light);
+  color: var(--color-success-dark);
+  border: 2px solid var(--color-success);
+}
+
+.pulse {
+  animation: pulse 1s ease-in-out;
+}
+
+.addAnimation {
+  animation: addPulse 1s ease-in-out;
+  background: var(--color-success-light);
+  border-color: var(--color-success);
+}
+
+.removeAnimation {
+  animation: removePulse 1s ease-in-out;
+  background: var(--color-error-light);
+  border-color: var(--color-error);
+}
+
+.counterNumber {
+  font-weight: 700;
+}
+
+.counterLabel {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes addPulse {
+  0%, 100% { 
+    transform: scale(1);
+    background: var(--color-success-light);
+  }
+  50% { 
+    transform: scale(1.1);
+    background: var(--color-success);
+    color: white;
+  }
+}
+
+@keyframes removePulse {
+  0%, 100% { 
+    transform: scale(1);
+    background: var(--color-error-light);
+  }
+  50% { 
+    transform: scale(1.1);
+    background: var(--color-error);
+    color: white;
+  }
+}
+
+/* Миниатюра */
+.thumbnailContainer {
+  position: relative;
+  width: 80px;
+  height: 60px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-surface-secondary);
+}
+
+.thumbnailImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumbnailFallback {
+  display: none;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+}
+
+.folderThumbnail {
+  width: 80px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--color-surface-secondary);
+}
+
+.folderIconOpen {
+  color: var(--color-primary);
+}
+
+.folderIconClosed {
+  color: var(--color-text-secondary);
+}
+
+.defaultThumbnail {
+  width: 80px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--color-surface-secondary);
+  color: var(--color-text-secondary);
+}
+
+/* Inline Editor */
+.inlineEditor {
+  padding: 8px 12px;
+  border: 2px solid var(--color-primary);
+  border-radius: 8px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 16px;
+  font-weight: 600;
+  width: 100%;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.inlineEditor:focus {
+  box-shadow: 0 0 0 3px rgba(var(--color-primary-rgb), 0.2);
+}
+
+/* Drag Preview */
+.dragPreview {
+  background: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: var(--shadow-xl);
+  opacity: 0.9;
+  transform: rotate(5deg);
+}
+
+.dragPreviewContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dragPreviewIcon {
+  font-size: 24px;
+}
+
+.dragPreviewName {
+  font-weight: 600;
+  color: var(--color-text);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Стили для drag and drop */
+
+.sortable-item {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  will-change: transform, opacity;
+}
+
+.sortable-item[data-dragging="true"] {
+  opacity: 0.5;
+  cursor: grabbing !important;
+}
+
+.sortable-item:not([data-dragging="true"]) {
+  transition: opacity 0.3s ease;
+}
+
+/* Drag Preview улучшения */
+.dragPreview {
+  background: var(--color-surface);
+  border: 2px solid var(--color-primary);
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(var(--color-primary-rgb), 0.1);
+  opacity: 0.95;
+  backdrop-filter: blur(10px);
+  transform: rotate(3deg) scale(1.02);
+  cursor: grabbing;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  z-index: 9999;
+}
+
+.dragPreview:hover {
+  transform: rotate(0deg) scale(1.05);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.25),
+    0 0 0 2px rgba(var(--color-primary-rgb), 0.2);
+}
+
+.dragPreviewContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.dragPreviewIcon {
+  font-size: 24px;
+  color: var(--color-primary);
+}
+
+.dragPreviewName {
+  font-weight: 600;
+  color: var(--color-text);
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

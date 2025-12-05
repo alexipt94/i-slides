@@ -1,0 +1,110 @@
+.folderContent {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 20px;
+  align-items: center;
+}
+
+.folderStats {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.folderMeta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.metaIcon {
+  opacity: 0.7;
+}
+
+.toggleButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.toggleButton:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-primary);
+}
+
+.toggleIcon {
+  transition: transform 0.3s ease;
+}
+
+.toggleIcon.expanded {
+  transform: rotate(90deg);
+}
+
+.toggleText {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.childrenContainer {
+  grid-column: 1 / -1;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.childGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+  padding: 20px;
+  background: var(--color-surface-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+}
+
+.childItem {
+  background: var(--color-surface);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.emptyFolder {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px;
+  color: var(--color-text-secondary);
+  background: var(--color-surface-secondary);
+  border-radius: 12px;
+  border: 2px dashed var(--color-border);
+}
+
+@media (max-width: 768px) {
+  .folderContent {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .folderMeta {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .childGrid {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+} 
