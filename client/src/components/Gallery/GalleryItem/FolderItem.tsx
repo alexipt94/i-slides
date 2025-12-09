@@ -16,6 +16,7 @@ interface FolderItemProps {
   onRename: (id: string, newName: string) => void;
   onFolderToggle: (folderId: string) => void;
   children?: GalleryItem[];
+  isDropTarget?: boolean;
 }
 
 export const FolderItem = ({

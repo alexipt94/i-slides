@@ -1,6 +1,7 @@
 .container {
   width: 100%;
   position: relative;
+  overflow: hidden; /* ✅ Предотвращаем выход за границы */
 }
 
 .grid {
@@ -8,18 +9,184 @@
   grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
   gap: 20px;
   padding: 20px 0;
+  position: relative;
 }
 
-.grid.dragging > *:not([data-dragging="true"]) {
-  /* Неактивные элементы становятся немного прозрачными */
-  opacity: 0.6;
-  transition: opacity 0.2s ease;
+/* Стиль для перетаскиваемого элемента */
+.grid > [data-dragging="true"] {
+  z-index: 1000 !important;
+  opacity: 0.7;
+  cursor: grabbing !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  will-change: transform; /* ✅ Оптимизация для анимаций */
 }
 
+/* Стиль для drop-цели (папки, которые принимают элементы) */
+.grid > [data-drop-target="true"] {
+  background: linear-gradient(
+    135deg,
+    rgba(var(--color-primary-rgb), 0.15) 0%,
+    rgba(var(--color-primary-rgb), 0.08) 100%
+  );
+  border: 2px dashed var(--color-primary);
+  animation: pulseBorder 2s infinite;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+/* Убираем hover-эффекты при перетаскивании */
+.grid.dragging > *:hover {
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Стиль для оверлея drop-цели */
+.grid > [data-drop-target="true"]::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  border-radius: 8px;
+  background: rgba(var(--color-primary-rgb), 0.05);
+  z-index: -1;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes pulseBorder {
+  0%, 100% {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 0 rgba(var(--color-primary-rgb), 0.4);
+  }
+  50% {
+    border-color: rgba(var(--color-primary-rgb), 0.7);
+    box-shadow: 0 0 0 4px rgba(var(--color-primary-rgb), 0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Мобильная адаптация */
 @media (max-width: 768px) {
   .grid {
     grid-template-columns: 1fr;
     gap: 16px;
     padding: 16px 0;
   }
+  
+  .container {
+    overflow-x: hidden; /* ✅ На мобильных точно скрываем горизонтальный скролл */
+  }
+}
+
+/* Добавляем в конец файла */
+
+/* Индикатор для пользователя */
+.dropHint {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-primary);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 24px;
+  font-size: 14px;
+  font-weight: 500;
+  z-index: 2000;
+  animation: slideUp 0.3s ease;
+  box-shadow: 0 4px 20px rgba(var(--color-primary-rgb), 0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dropHint::before {
+  content: '↕️';
+  font-size: 16px;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Анимация возврата на место */
+[data-was-dropped="true"] {
+  animation: returnToPlace 0.3s ease;
+}
+
+@keyframes returnToPlace {
+  0% {
+    transform: var(--current-transform);
+  }
+  100% {
+    transform: none;
+  }
+}
+
+/* Стиль для элементов, которые нельзя бросать */
+.grid > [data-item-type="presentation"][data-drop-target="false"] {
+  cursor: not-allowed !important;
+}
+
+/* Стиль для презентаций, над которыми нельзя бросать */
+.grid > [data-item-type="presentation"] {
+  cursor: grab;
+}
+
+.grid > [data-item-type="presentation"]:active {
+  cursor: grabbing;
+}
+
+/* Стиль для папок, над которыми можно бросать */
+.grid > [data-item-type="folder"] {
+  cursor: pointer;
+}
+
+/* Отключаем перетаскивание для не-папок при наведении */
+.grid.dragging [data-item-type="presentation"][data-drop-target="false"] {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Визуальный индикатор, что можно бросать только в папки */
+.grid.dragging [data-item-type="folder"] {
+  position: relative;
+}
+
+.grid.dragging [data-item-type="folder"]::after {
+  content: '↓ Бросить сюда';
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-primary);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.grid.dragging [data-item-type="folder"]:hover::after {
+  opacity: 1;
 }

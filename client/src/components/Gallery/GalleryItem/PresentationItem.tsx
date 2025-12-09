@@ -11,6 +11,7 @@ interface PresentationItemProps {
   isDragging?: boolean;
   onSelect: (id: string) => void;
   onRename: (id: string, newName: string) => void;
+  isDropTarget?: boolean;
 }
 
 export const PresentationItem = ({

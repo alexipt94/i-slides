@@ -241,3 +241,30 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Стиль для элементов, которые можно перетаскивать */
+.draggable {
+  cursor: grab;
+}
+
+.draggable:active {
+  cursor: grabbing;
+}
+
+/* Стиль для элементов, которые успешно брошены */
+.successDrop {
+  animation: successDrop 0.5s ease;
+}
+
+@keyframes successDrop {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+    background: rgba(var(--color-success-rgb), 0.1);
+  }
+  100% {
+    transform: scale(1);
+  }
+}

@@ -25,6 +25,7 @@ export const PresentationsList = () => {
     createPresentation,
     moveItems,
     renameItem,
+    handleItemMove, 
   } = useGallery();
 
   const handleCreateFolder = () => {
@@ -41,9 +42,9 @@ export const PresentationsList = () => {
     }
   };
 
-  const handleItemMove = useCallback((draggedId: string, targetFolderId: string | null) => {
-    moveItems([draggedId], targetFolderId);
-  }, [moveItems]);
+  //const handleItemMove = useCallback((draggedId: string, targetFolderId: string | null) => {
+  //  moveItems([draggedId], targetFolderId);
+  //}, [moveItems]);
 
   const handleItemRename = useCallback((id: string, newName: string) => {
     renameItem(id, newName);
@@ -105,13 +106,13 @@ export const PresentationsList = () => {
           </div>
         ) : (
           <GalleryContainer
-            items={items}
-            selectedIds={selectedIds}
-            onItemSelect={toggleSelection}
-            onItemRename={handleItemRename}
-            onItemMove={handleItemMove}
-            onFolderToggle={toggleFolder}
-          />
+          items={items}
+          selectedIds={selectedIds}
+          onItemSelect={toggleSelection}
+          onItemRename={renameItem}
+          onItemMove={handleItemMove} // ✅ Передаем handleItemMove
+          onFolderToggle={toggleFolder}
+        />
         )}
       </div>
 

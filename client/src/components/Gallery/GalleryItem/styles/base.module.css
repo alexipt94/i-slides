@@ -92,3 +92,32 @@
     grid-row: 2;
   }
 }
+/* Стили для drop-цели */
+.container[data-drop-target="true"] {
+  background: linear-gradient(
+    135deg,
+    rgba(var(--color-primary-rgb), 0.1) 0%,
+    rgba(var(--color-primary-rgb), 0.05) 100%
+  );
+  border: 2px dashed var(--color-primary);
+  animation: pulseBorder 2s infinite;
+}
+
+.container[data-drop-target="true"]:hover {
+  border-style: solid;
+  animation: none;
+}
+
+@keyframes pulseBorder {
+  0%, 100% {
+    border-color: var(--color-primary);
+  }
+  50% {
+    border-color: rgba(var(--color-primary-rgb), 0.5);
+  }
+}
+
+/* Отключаем hover-эффекты при перетаскивании */
+.container[data-dragging="true"] {
+  pointer-events: none;
+}
