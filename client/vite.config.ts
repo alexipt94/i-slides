@@ -1,15 +1,11 @@
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { defineConfig } from 'vite';
-import biome from 'vite-plugin-biome';
+
 
 export default defineConfig({
   plugins: [
     react(),
-    biome({
-      mode: 'lint',
-      applyFixes: true,
-    }),
   ],
   resolve: {
     alias: {
