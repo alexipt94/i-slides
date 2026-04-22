@@ -1,12 +1,12 @@
 interface ButtonProps {
-	label: string;
+	children: React.ReactNode;
 	disabled?: boolean;
 }
 
-export function Button({ label, disabled }: ButtonProps) {
+export function Button({ children, disabled }: ButtonProps) {
 	return (
 		<button type="button" disabled={disabled}>
-			{label}
+			{children}
 		</button>
 	);
 }

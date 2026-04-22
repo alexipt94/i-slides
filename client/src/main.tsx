@@ -12,7 +12,7 @@ if (!root) {
 ReactDOM.createRoot(root).render(
 	<React.StrictMode>
 		<App />
-		<Button label="Первая кнопка" />
-		<Button label="Вторая кнопка выключена" disabled={true} />
+		<Button>Первая кнопка</Button>
+		<Button disabled>Вторая кнопка выключена</Button>
 	</React.StrictMode>
 );
