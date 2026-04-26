@@ -1,9 +1,12 @@
 import { Button } from '@shared/ui/button';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 export const App = () => {
 	const [clickCount, setClickCount] = useState(0);
-
+   useEffect ( ()=>{
+    document.title = `${clickCount}`
+    return ()=>{ document.title = 'i-slides'}
+   },[clickCount])
 	return (
 		<div>
 			<p>Нажато раз: {clickCount}</p>
