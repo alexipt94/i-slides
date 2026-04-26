@@ -1,8 +1,11 @@
 import { Button } from '@shared/ui/button';
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react'
+//import { createSlide } from '@entities/slide';
 
 export const App = () => {
 	const [clickCount, setClickCount] = useState(0);
+
+    //console.log(createSlide())
    useEffect ( ()=>{
     document.title = `${clickCount}`
     return ()=>{ document.title = 'i-slides'}
