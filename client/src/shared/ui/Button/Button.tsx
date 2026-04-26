@@ -6,10 +6,16 @@ interface ButtonProps {
 	disabled?: boolean;
 	variant?: ButtonVariant;
 	size?: ButtonSize;
-	onClick?: (event : React.MouseEvent<HTMLButtonElement>) => void;	
+	onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
-export function Button({ children, disabled, variant = 'primary', size = 'medium', onClick }: ButtonProps) {
+export function Button({
+	children,
+	disabled,
+	variant = 'primary',
+	size = 'medium',
+	onClick,
+}: ButtonProps) {
 	const variantClass = {
 		primary: 'btn-primary',
 		secondary: 'btn-secondary',
