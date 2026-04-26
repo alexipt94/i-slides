@@ -1,2 +1,2 @@
-export type { Slide } from './model/silde';
-export { createSlide } from './model/silde';
+export type { Slide } from './model/slide';
+export { createSlide } from './model/slide';
